@@ -1,0 +1,323 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="coqstyle.css" type="text/css"><title>learn</title>
+</head>
+
+<body>
+
+<h1>Library learn</h1>
+
+<code>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+<a name="lab1"></a><h1>Preliminary definitions.</h1>
+
+</td></tr></table>
+<code>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+The domain. 
+</td></tr></table>
+<code>
+<code class="keyword">Variable</code> Dom : Set.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+Constant predicates. 
+</td></tr></table>
+<code>
+<code class="keyword">Definition</code> <a name="PFalse"></a>PFalse (x : Dom) := False.<br/>
+<code class="keyword">Definition</code> <a name="PTrue"></a>PTrue (x : Dom) := True.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+A formula (modulo a theory represented by arbitrary predicates). 
+</td></tr></table>
+<code>
+<code class="keyword">Inductive</code> <a name="Formula"></a>Formula : Type :=<br/>
+&nbsp;&nbsp;| <a name="FPred"></a>FPred : (Dom -&gt; Prop) -&gt; Formula<br/>
+&nbsp;&nbsp;| <a name="FAnd"></a>FAnd : Formula -&gt; Formula -&gt; Formula<br/>
+&nbsp;&nbsp;| <a name="FOr"></a>FOr: Formula -&gt; Formula -&gt; Formula.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+Evaluating formulas. 
+</td></tr></table>
+<code>
+<code class="keyword">Fixpoint</code> <a name="Eval"></a>Eval (f : Formula) (x : Dom) {struct f} : Prop :=<br/>
+&nbsp;&nbsp;match f with<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| FPred p =&gt; p x<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| FAnd fa fb =&gt; Eval fa x /\ Eval fb x<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| FOr fa fb =&gt; Eval fa x \/ Eval fb x<br/>
+&nbsp;&nbsp;end.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+When is a formula Unsat? (Note the tricky empty variable
+    universe case.) 
+</td></tr></table>
+<code>
+<code class="keyword">Definition</code> <a name="Unsat"></a>Unsat (f : Formula) := forall x : Dom, ~ Eval f x.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+An equality on formulas. 
+</td></tr></table>
+<code>
+<code class="keyword">Variable</code> eq : forall x y : Formula, {x=y} + {x&lt;&gt;y}.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+<a name="lab2"></a><h1>The (simplified) prunning algorithm.</h1>
+
+</td></tr></table>
+<code>
+<code class="keyword">Fixpoint</code> <a name="Prune"></a>Prune (old new : Formula) {struct new} : Formula :=<br/>
+&nbsp;&nbsp;match old, new with<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| FAnd a b, FAnd a' c =&gt; if eq a a' then FAnd a (Prune b c) else new<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| _, FOr a b =&gt; FOr (Prune old a) (Prune old b)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| _, _ =&gt; if eq old new then (FPred PFalse) else new<br/>
+&nbsp;&nbsp;end.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+<a name="lab3"></a><h1>Correctness of the pruning algorithm.</h1>
+
+</td></tr></table>
+<code>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+First invariant. 
+</td></tr></table>
+<code>
+<code class="keyword">Lemma</code> <a name="PruneInvA"></a>PruneInvA : forall old new : Formula, forall x : Dom,<br/>
+&nbsp;&nbsp;(~ Eval old x -&gt; Eval new x -&gt; Eval (Prune old new) x).<br/>
+<code class="keyword">Proof</code>.<br/>
+double induction old new.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;induction eq.<br/>
+&nbsp;&nbsp;rewrite a in H; contradiction.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;induction eq.<br/>
+&nbsp;&nbsp;rewrite a in H1; contradiction.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in H2; fold Eval in H2.<br/>
+&nbsp;&nbsp;&nbsp;intuition.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;induction eq.<br/>
+&nbsp;&nbsp;rewrite a in H1; contradiction.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;intuition.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;induction eq.<br/>
+&nbsp;&nbsp;rewrite a; rewrite a in H2; rewrite a in H3; clear a.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;firstorder.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in H4; fold Eval in H4.<br/>
+&nbsp;&nbsp;&nbsp;intuition.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;induction eq.<br/>
+&nbsp;&nbsp;rewrite a in H1; contradiction.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;induction eq.<br/>
+&nbsp;&nbsp;rewrite a in H3; contradiction.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in H4; fold Eval in H4.<br/>
+&nbsp;&nbsp;&nbsp;intuition.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+Second invariant. 
+</td></tr></table>
+<code>
+<code class="keyword">Lemma</code> <a name="PruneInvB"></a>PruneInvB : forall old new : Formula, forall x : Dom,<br/>
+&nbsp;&nbsp;(~ Eval old x -&gt; Eval (Prune old new) x -&gt; Eval new x).<br/>
+<code class="keyword">Proof</code>.<br/>
+double induction old new.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *;<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; intros; induction eq.<br/>
+&nbsp;&nbsp;unfold Eval in H0; contradiction.<br/>
+&nbsp;&nbsp;unfold Eval in H0; assumption.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros; induction eq.<br/>
+&nbsp;&nbsp;unfold Eval in H2; contradiction.<br/>
+&nbsp;&nbsp;unfold Eval in H2; assumption.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in H2; fold Eval in H2.<br/>
+&nbsp;&nbsp;&nbsp;firstorder.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros; induction eq.<br/>
+&nbsp;&nbsp;unfold Eval in H2; contradiction.<br/>
+&nbsp;&nbsp;unfold Eval in H2; assumption.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros; induction eq.<br/>
+&nbsp;&nbsp;unfold Eval in H4; fold Eval in H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite a in H4; rewrite a in H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intuition.<br/>
+&nbsp;&nbsp;unfold Eval in H4; fold Eval in H4; assumption.<br/>
+&nbsp;intuition.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in H4; fold Prune in H4; unfold Eval in H4; fold Eval in H4.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;case H4.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;left.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;firstorder.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;right.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;firstorder.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros; induction eq.<br/>
+&nbsp;&nbsp;unfold Eval in H2; contradiction.<br/>
+&nbsp;&nbsp;unfold Eval in H2; assumption.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros; induction eq.<br/>
+&nbsp;&nbsp;unfold Eval in H4; contradiction.<br/>
+&nbsp;&nbsp;unfold Eval in H4; assumption.<br/>
+&nbsp;unfold Eval in |- *; fold Eval in |- *.<br/>
+&nbsp;&nbsp;&nbsp;unfold Prune in |- *; fold Prune in |- *.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;unfold Eval in H4; fold Eval in H4.<br/>
+&nbsp;&nbsp;&nbsp;case H4.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;left.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;firstorder.<br/>
+&nbsp;&nbsp;intros; right; firstorder.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+Simple fact about Unsat. 
+</td></tr></table>
+<code>
+<code class="keyword">Lemma</code> <a name="UnsatImp"></a>UnsatImp : forall a b : Formula,<br/>
+&nbsp;&nbsp;(forall x : Dom, Eval a x -&gt; Eval b x) -&gt; Unsat b -&gt; Unsat a.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;unfold Unsat.<br/>
+&nbsp;&nbsp;firstorder.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+The algorithm is complete. 
+</td></tr></table>
+<code>
+<code class="keyword">Lemma</code> <a name="PruneComplete"></a>PruneComplete : forall old new : Formula,<br/>
+&nbsp;&nbsp;Unsat old -&gt; Unsat new -&gt; Unsat (Prune old new).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply (UnsatImp (Prune old new) new).<br/>
+&nbsp;&nbsp;unfold Unsat in H.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;apply PruneInvB.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+The algorithm is sound. 
+</td></tr></table>
+<code>
+<code class="keyword">Lemma</code> <a name="PruneSound"></a>PruneSound : forall old new : Formula,<br/>
+&nbsp;&nbsp;Unsat old -&gt; Unsat (Prune old new) -&gt; Unsat new.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply (UnsatImp new (Prune old new)).<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;unfold Unsat in H.<br/>
+&nbsp;&nbsp;apply PruneInvA.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+Therefore it is correct. 
+</td></tr></table>
+<code>
+<code class="keyword">Theorem</code> <a name="PruneCorrect"></a>PruneCorrect : forall old new : Formula,<br/>
+&nbsp;&nbsp;Unsat old -&gt; (Unsat new &lt;-&gt; Unsat (Prune old new)).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;apply PruneComplete; assumption.<br/>
+&nbsp;&nbsp;apply PruneSound; assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+
+<table width="100%"><tr class="doc"><td>
+<a name="lab4"></a><h1>A trivial pruning algorithm and its correctness.</h1>
+
+</td></tr></table>
+<code>
+<code class="keyword">Definition</code> <a name="TrivialPrune"></a>TrivialPrune (old new : Formula) := new.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="TrivialPruneCorrect"></a>TrivialPruneCorrect : forall old new : Formula,<br/>
+&nbsp;&nbsp;Unsat old -&gt; (Unsat new &lt;-&gt; Unsat (TrivialPrune old new)).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intuition.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+<hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

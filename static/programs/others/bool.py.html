@@ -1,0 +1,262 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>~/minisat/ubuntu-pack/bool.py.html</title>
+<meta name="Generator" content="Vim/7.1">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body bgcolor="#000000" text="#ffffff"><font face="monospace">
+<font color="#00ffff"><b>#!/usr/bin/env python</b></font><br>
+<font color="#8080ff"><b>import</b></font>&nbsp;sys<br>
+<font color="#8080ff"><b>import</b></font>&nbsp;re<br>
+<br>
+<font color="#00ffff"><b>#todo:</b></font><br>
+<font color="#00ffff"><b># - if a virtual package with name X exists then all (concrete)</b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp; packages with the name X should automatically provide it</b></font><br>
+<font color="#00ffff"><b># - treat pre-depends</b></font><br>
+<font color="#00ffff"><b># - check for pre-depends cycles</b></font><br>
+<br>
+<font color="#00ffff"><b># package[name][version] is a list with four elements</b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;- a unique integer ID</b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;- dependencies: </b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a list of lists of tuples (name, cmp, version)</b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;- conflicts: </b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a list of tuples (name, cmp, version)</b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;- provided:</b></font><br>
+<font color="#00ffff"><b>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a list of names</b></font><br>
+<font color="#00ffff"><b># A package may have the special version ver_vir.</b></font><br>
+<br>
+<font color="#00ffff"><b># Constants</b></font><br>
+con_s='<font color="#ff40ff"><b>Conflicts:</b></font>'<br>
+dep_s='<font color="#ff40ff"><b>Depends:</b></font>'<br>
+ver_s='<font color="#ff40ff"><b>Version:</b></font>'<br>
+pkg_s='<font color="#ff40ff"><b>Package:</b></font>'<br>
+pvd_s='<font color="#ff40ff"><b>Provides:</b></font>'<br>
+ver_f=re.compile(r'<font color="#ff40ff"><b>((\d+):)?([^-]+)(-(.+))?</b></font>')<br>
+ver_f2=re.compile(r'<font color="#ff40ff"><b>([^\d]*)(\d*)(.*)</b></font>')<br>
+letters=set('<font color="#ff40ff"><b>qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM</b></font>')<br>
+ver_any='<font color="#ff40ff"><b>::ANY</b></font>'&nbsp;<br>
+ver_vir='<font color="#ff40ff"><b>::VIRTUAL</b></font>'<br>
+<br>
+<font color="#00ffff"><b># Globals</b></font><br>
+package=dict()<br>
+<br>
+crt_pkg=''<br>
+crt_ver=''<br>
+crt_dep=[]<br>
+crt_con=[]<br>
+crt_pvd=[]<br>
+crt_id=1<br>
+<br>
+cnt_clauses=0<br>
+<br>
+<font color="#00ffff"><b># Parsing helpers</b></font><br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>save_pkg</b></font>():<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>global</b></font>&nbsp;crt_pkg,crt_ver,crt_dep,crt_con,crt_pvd,crt_id<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>add_pkg</b></font>(n,v):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>global</b></font>&nbsp;crt_id<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;n <font color="#ffff00"><b>not</b></font>&nbsp;<font color="#ffff00"><b>in</b></font>&nbsp;package:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;package[n]=dict()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;v <font color="#ffff00"><b>not</b></font>&nbsp;<font color="#ffff00"><b>in</b></font>&nbsp;package[n]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;package[n][v]=[crt_id,[],[],[]]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;crt_id=crt_id+1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;False<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;crt_pkg=='':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font><br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;<font color="#ffff00"><b>not</b></font>&nbsp;add_pkg(crt_pkg,crt_ver):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sys.stderr.write('<font color="#ff40ff"><b>DUPLICATE: </b></font>'+crt_pkg+'<font color="#ff40ff"><b>&nbsp;(= </b></font>'+crt_ver+'<font color="#ff40ff"><b>)</b></font><font color="#ff6060"><b>\n</b></font>')<br>
+&nbsp;&nbsp;package[crt_pkg][crt_ver][1]=crt_dep<br>
+&nbsp;&nbsp;package[crt_pkg][crt_ver][2]=crt_con<br>
+&nbsp;&nbsp;package[crt_pkg][crt_ver][3]=crt_pvd<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;p <font color="#ffff00"><b>in</b></font>&nbsp;crt_pvd:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;add_pkg(p,ver_vir)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;package[p][ver_vir][1]==[]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;package[p][ver_vir][1]=[[]]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;package[p][ver_vir][1][0].append((crt_pkg,'<font color="#ff40ff"><b>=</b></font>',crt_ver))<br>
+&nbsp;&nbsp;crt_pkg=''<br>
+&nbsp;&nbsp;crt_ver=''<br>
+&nbsp;&nbsp;crt_dep=[]<br>
+&nbsp;&nbsp;crt_con=[]<br>
+&nbsp;&nbsp;crt_pvd=[]<br>
+<br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>parse_pkg_ver</b></font>(s):<br>
+&nbsp;&nbsp;l=re.split('<font color="#ff40ff"><b>[\s()]+</b></font>',s.strip())<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;len(l) &lt; 3:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;(l[0],'<font color="#ff40ff"><b>=</b></font>',ver_any)<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;(l[0],l[1],l[2])<br>
+<br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>parse_dep</b></font>(s):<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>global</b></font>&nbsp;crt_dep<br>
+&nbsp;&nbsp;l=map(<font color="#ffff00"><b>lambda</b></font>&nbsp;x: x.split('<font color="#ff40ff"><b>|</b></font>'), s.split('<font color="#ff40ff"><b>,</b></font>'));<br>
+&nbsp;&nbsp;crt_dep=map(<font color="#ffff00"><b>lambda</b></font>&nbsp;x: map(<font color="#ffff00"><b>lambda</b></font>&nbsp;y: parse_pkg_ver(y),x),l)<br>
+<br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>parse_con</b></font>(s):<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>global</b></font>&nbsp;crt_con<br>
+&nbsp;&nbsp;l=s.split('<font color="#ff40ff"><b>,</b></font>')<br>
+&nbsp;&nbsp;crt_con=map(<font color="#ffff00"><b>lambda</b></font>&nbsp;x: parse_pkg_ver(x),l)<br>
+<br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>parse_pvd</b></font>(s):<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>global</b></font>&nbsp;crt_pvd<br>
+&nbsp;&nbsp;l=s.split('<font color="#ff40ff"><b>,</b></font>')<br>
+&nbsp;&nbsp;crt_pvd=map(<font color="#ffff00"><b>lambda</b></font>&nbsp;x: x.strip(), l)<br>
+<br>
+<font color="#00ffff"><b># Other helpers</b></font><br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>less_ver</b></font>(v1,v2):<br>
+&nbsp;&nbsp;<font color="#00ffff"><b># see <a href="http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version">http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version</a></b></font><br>
+&nbsp;&nbsp;<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>cmp_str</b></font>(s1,s2):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1==''&nbsp;<font color="#ffff00"><b>and</b></font>&nbsp;s2=='':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1=='':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s2[0]=='<font color="#ff40ff"><b>~</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s2=='':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1[0]=='<font color="#ff40ff"><b>~</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;(s1[0]=='<font color="#ff40ff"><b>~</b></font>') != (s2[0]=='<font color="#ff40ff"><b>~</b></font>'):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1[0]=='<font color="#ff40ff"><b>~</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;(s1[0] <font color="#ffff00"><b>in</b></font>&nbsp;letters) != (s2[0] <font color="#ffff00"><b>in</b></font>&nbsp;letters):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1[0] <font color="#ffff00"><b>in</b></font>&nbsp;letters:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1[0]&lt;s2[0]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;s1[0]&gt;s2[0]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;cmp_str(s1[1:],s2[1:])<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>cmp</b></font>(s1,s2):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>eint</b></font>(s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s=='':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;int(s)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;s1==''&nbsp;<font color="#ffff00"><b>and</b></font>&nbsp;s2=='':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[nd1,d1,r1]=re.match(ver_f2,s1).groups()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[nd2,d2,r2]=re.match(ver_f2,s2).groups()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cnd=cmp_str(nd1,nd2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;cnd!=0:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;cnd<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;eint(d1)!=eint(d2):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;eint(d1)-eint(d2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;cmp(r1,r2)<br>
+&nbsp;&nbsp;m1=re.match(ver_f,v1)<br>
+&nbsp;&nbsp;m2=re.match(ver_f,v2)<br>
+&nbsp;&nbsp;e1=e2=0<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;m1.group(2)!=None:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e1=int(m1.group(2))<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;m2.group(2)!=None:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e2=int(m2.group(2))<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;e1!=e2:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;e1-e2<br>
+&nbsp;&nbsp;c=cmp(m1.group(3),m2.group(3))<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;c!=0:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;c<br>
+&nbsp;&nbsp;d1=d2=''<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;m1.group(5)!=None:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;d1=m1.group(5)<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;m2.group(5)!=None:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;d2=m2.group(5)<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;cmp(d1,d2)<br>
+<br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>cmp_ver_dbg</b></font>(v1,cmp,v2):<br>
+&nbsp;&nbsp;c=less_ver(v1,v2)<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>&lt;&lt;</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;c&lt;0<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>&gt;&gt;</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;c&gt;0<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>&lt;=</b></font>'&nbsp;<font color="#ffff00"><b>or</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>&lt;</b></font>':&nbsp;&nbsp; <font color="#00ffff"><b># debian old (and brain-dead) use of &lt;</b></font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;c&lt;=0<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>&gt;=</b></font>'&nbsp;<font color="#ffff00"><b>or</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>&gt;</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;c&gt;=0<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;cmp=='<font color="#ff40ff"><b>=</b></font>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;c==0<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;'<font color="#ff40ff"><b>BAD VERSION COMPARATOR</b></font>',cmp<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;False<br>
+<br>
+<font color="#ffff00"><b>def</b></font>&nbsp;<font color="#00ffff"><b>cmp_ver</b></font>(v1,cmp,v2):<br>
+&nbsp;&nbsp;r=cmp_ver_dbg(v1,cmp,v2)<br>
+&nbsp;&nbsp;<font color="#00ffff"><b>#print 'DBG',v1,cmp,v2,r</b></font><br>
+&nbsp;&nbsp;<font color="#ffff00"><b>return</b></font>&nbsp;r<br>
+<br>
+<font color="#00ffff"><b># Parse input</b></font><br>
+<font color="#ffff00"><b>for</b></font>&nbsp;l <font color="#ffff00"><b>in</b></font>&nbsp;sys.stdin:<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;l.startswith(pkg_s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;save_pkg()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;crt_pkg=l[len(pkg_s):].strip()<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;l.startswith(ver_s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;crt_ver=l[len(ver_s):].strip()<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;l.startswith(dep_s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;parse_dep(l[len(dep_s):].strip())<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;l.startswith(con_s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;parse_con(l[len(con_s):].strip())<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>elif</b></font>&nbsp;l.startswith(pvd_s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;parse_pvd(l[len(pvd_s):].strip())<br>
+save_pkg()<br>
+<br>
+<font color="#00ffff"><b># print conflicts</b></font><br>
+<font color="#ffff00"><b>for</b></font>&nbsp;p,pd <font color="#ffff00"><b>in</b></font>&nbsp;package.iteritems():<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;v,vd <font color="#ffff00"><b>in</b></font>&nbsp;pd.iteritems():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;v!=ver_vir:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;v2,vd2 <font color="#ffff00"><b>in</b></font>&nbsp;pd.iteritems():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;v!=v2 <font color="#ffff00"><b>and</b></font>&nbsp;v2!=ver_vir:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;str(vd[0])+'<font color="#ff40ff"><b>&nbsp;</b></font>'+str(vd2[0])+'<font color="#ff40ff"><b>&nbsp;0</b></font>'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cnt_clauses=cnt_clauses+1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;cp,cmp,cv <font color="#ffff00"><b>in</b></font>&nbsp;vd[2]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;cp <font color="#ffff00"><b>in</b></font>&nbsp;package:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;cv==ver_any <font color="#ffff00"><b>and</b></font>&nbsp;(cp==p <font color="#ffff00"><b>or</b></font>&nbsp;cp <font color="#ffff00"><b>in</b></font>&nbsp;vd[3]): <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;ver_vir <font color="#ffff00"><b>in</b></font>&nbsp;package[cp] <font color="#ffff00"><b>and</b></font>&nbsp;len(package[cp][ver_vir][1])==1:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;ccp,_,ccv <font color="#ffff00"><b>in</b></font>&nbsp;package[cp][ver_vir][1][0]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;ccp!=p <font color="#ffff00"><b>and</b></font>&nbsp;ccp <font color="#ffff00"><b>in</b></font>&nbsp;package <font color="#ffff00"><b>and</b></font>&nbsp;ccv <font color="#ffff00"><b>in</b></font>&nbsp;package[ccp]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;str(vd[0])+'<font color="#ff40ff"><b>&nbsp;</b></font>'+str(package[ccp][ccv][0])+'<font color="#ff40ff"><b>&nbsp;0</b></font>'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cnt_clauses=cnt_clauses+1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;pcv,pcvd <font color="#ffff00"><b>in</b></font>&nbsp;package[cp].iteritems():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;cv==ver_any <font color="#ffff00"><b>or</b></font>&nbsp;(pcv!=ver_vir <font color="#ffff00"><b>and</b></font>&nbsp;cmp_ver(pcv,cmp,cv)):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;vd[0]==pcvd[0]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#00ffff"><b># some stupid packages conflict with themselves</b></font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#00ffff"><b># and some stupid apt ignores that</b></font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sys.stderr.write('<font color="#ff40ff"><b>SELF-CONFLICT: </b></font>'+p+'<font color="#ff40ff"><b>=</b></font>'+v+'<font color="#ff6060"><b>\n</b></font>')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>else</b></font>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;str(vd[0])+'<font color="#ff40ff"><b>&nbsp;</b></font>'+str(pcvd[0])+'<font color="#ff40ff"><b>&nbsp;0</b></font>'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cnt_clauses=cnt_clauses+1<br>
+<br>
+<font color="#00ffff"><b># print dependencies</b></font><br>
+<font color="#ffff00"><b>for</b></font>&nbsp;p, pd <font color="#ffff00"><b>in</b></font>&nbsp;package.iteritems():<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;v, vd <font color="#ffff00"><b>in</b></font>&nbsp;pd.iteritems():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;dalt <font color="#ffff00"><b>in</b></font>&nbsp;vd[1]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;str(vd[0]),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;dp,cmp,dv <font color="#ffff00"><b>in</b></font>&nbsp;dalt:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;dp <font color="#ffff00"><b>in</b></font>&nbsp;package:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;pdv,pdvd <font color="#ffff00"><b>in</b></font>&nbsp;package[dp].iteritems():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>if</b></font>&nbsp;dv==ver_any <font color="#ffff00"><b>or</b></font>&nbsp;cmp_ver(pdv,cmp,dv):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;'<font color="#ff40ff"><b>-</b></font>'+str(pdvd[0]),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#ffff00"><b>print</b></font>&nbsp;'<font color="#ff40ff"><b>0</b></font>'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cnt_clauses=cnt_clauses+1<br>
+<br>
+<font color="#ffff00"><b>print</b></font>&nbsp;'<font color="#ff40ff"><b>VARIABLES</b></font>',(crt_id-1)<br>
+<font color="#ffff00"><b>print</b></font>&nbsp;'<font color="#ff40ff"><b>CLAUSES</b></font>',cnt_clauses<br>
+<br>
+<font color="#00ffff"><b># save id-&gt;package+ver</b></font><br>
+f=open('<font color="#ff40ff"><b>ids.txt</b></font>','<font color="#ff40ff"><b>w</b></font>')<br>
+all_ver=[]<br>
+<font color="#ffff00"><b>for</b></font>&nbsp;p,pd <font color="#ffff00"><b>in</b></font>&nbsp;package.iteritems():<br>
+&nbsp;&nbsp;<font color="#ffff00"><b>for</b></font>&nbsp;v,vd <font color="#ffff00"><b>in</b></font>&nbsp;pd.iteritems():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;all_ver.append((vd[0],p,v))<br>
+all_ver.sort()<br>
+<font color="#ffff00"><b>for</b></font>&nbsp;i,p,v <font color="#ffff00"><b>in</b></font>&nbsp;all_ver:<br>
+&nbsp;&nbsp;f.write(str(i)+'<font color="#ff40ff"><b>&nbsp;</b></font>'+p+'<font color="#ff40ff"><b>&nbsp;</b></font>'+v+'<font color="#ff6060"><b>\n</b></font>')<br>
+f.close()<br>
+<br>
+<br>
+</font></body>
+</html>

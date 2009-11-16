@@ -1,0 +1,111 @@
+A {
+  color : #000066;
+  text-decoration : none;
+}
+
+A:Visited  {
+  color : black;
+}
+
+A:Hover  {
+  color : #3333ff;
+  text-decoration : underline;
+}
+
+html, body  {
+  height: 100%;  margin-top: 10px; padding: 0; /* force scrollbar */
+  font-family : helvetica, sans-serif;
+  font-size : 14px;
+  line-height : 120%;
+  text-align : left;
+  color : Black;
+  background-color : White;
+}
+
+em  {
+  color : #660000;
+}
+
+H1  {
+  font-size : 18px;
+  color : #000066;
+  padding : 20px 0px 0px 0px;
+  margin : 0px;
+}
+
+H2  {
+  font-size : 16px;
+  color : #006600;
+}
+
+H3  {
+  font-size : 14px;
+  color : Black;
+  padding : 14px 0px 0px 0px;
+  margin : 0px;
+}
+
+p {
+  padding : 10px 0px 0px 0px;
+  margin : 0px;
+}
+
+STRONG  {
+  font-weight : bold;
+  color : Red;
+}
+
+ul {
+  padding : 6px 0px 0px 30px;
+  margin : 0px;
+}
+
+.maroon  {
+  color : Maroon;
+}
+
+.nobullet  {
+  list-style-type : none;
+  list-style-image : none;
+}
+
+.small  {
+  font-size : 8px;
+  color : Gray;
+  font-family : monospace;
+}
+
+.title  {
+  font-family : palatino, serif;
+  font-size : 24px;
+  font-weight : bold;
+  color : #660000;
+  text-align : center;
+}
+
+#all {
+  width : 700px;
+  margin-left : auto;
+  margin-right : auto;
+}
+
+#content {
+  float: left;
+  z-index: 2;
+  width : 600px;
+}
+
+#menu {
+  padding : 0px 0px 10px 0px;
+  margin : 0px;
+}
+
+#navigation {
+  width : 70px;
+  margin-right : 10px;
+  padding: 10px 10px 10px 10px;
+  float : left;
+  z-index:1;
+  background : #aaaaff;
+  font-weight : bold;
+}

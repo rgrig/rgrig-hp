@@ -1,0 +1,86 @@
+<!--
+vim: spell
+-->
+
+<h1>Puzzles</h1>
+
+<p>These are little logic puzzles. They are difficult when you see them
+the first time. They have simple solutions, which will be found by
+someone with effective thinking habits, although, I stress this again,
+not as quickly as you might expect if you read the hints.<p>
+
+<h3>Christmas hats</h3>
+[Google interview question mentioned on a forum]
+
+<p>One hundred people enter a room one by one. When they enter, each is
+given a red or green hat, and they can't see it. Moreover they are not
+allowed to turn so they can't see the color of the hats of people
+that enter later. They do see the hats of people that are already in
+the room when they enter. So the last person sees 99 hats, the second
+to last sees 98 hats and so on. The first person to enter sees no hat.
+The <i>n</i>th person to enter sees the <i>n-1</i> hats of the persons
+already in the room.</p>
+
+<p>Now each person says a word: `red' or `green'. If the color matches
+his or her's hat the group gets a point. The total score the group
+is the total number of people that guessed correctly the color of their
+hat. They are allowed to speak in any order they wish. They are also
+told beforehand what the game is and they are allowed to come up with
+a strategy.</p>
+
+<p>Can you find a strategy that maximizes the number of guaranteed
+correct answers?</p>
+
+<h3>Friendship</h3>
+[<a href="http://www.amazon.com/gp/product/0521422604">van Lint and Wilson</a>]
+
+<p>Prove that in a group of people there are two with the same
+number of friends. (Friendship is symmetric.)</p>
+
+<h3>Chocolate bar</h3>
+[Henry's Algorithmic Problem Solving course at UCD]
+
+<p>The following game is played between two players with a chocolate.
+The player to move splits the chocolate in two pieces (along a
+vertical or horizontal) and eats one of them. You start this
+game with a 5 by 8 squares chocolate which has a poisoned bottom-down
+square. Find a strategy to stay alive.</p>
+
+<h3>Chessboard</h3>
+[classic]
+
+<p>You cut the bottom-left and top-right squares of a chessboard.
+Your job is to cover the rest with dominos or show that it is
+impossible. A domino is a piece of size 2 by 1 (which can cover
+two squares).</p>
+
+<h3>Touristic tour</h3>
+[classic]
+
+<p>You are in a foreign city; you would like to visit all of its
+streets... exactly once. What condition should the road system
+satisfy so that you can do what you want?</p>
+
+<h1>Hints</h1>
+
+<ol>
+<li>Let's say red=0 and green=1 (because it's longer). The first person
+to speak is the last one that entered the room and he gives the sum modulo
+2 of the seen hats.</li>
+
+<li>Let's say there are N people. The number of friends one might
+have is 0, 1, 2, ..., N-1. Look at 0 and N-1.</li>
+
+<li>Keep it square.</li>
+
+<li>Each domino covers one white and one black square.</li>
+
+<li>Connected and even.</li>
+
+</ol>
+
+<HR SIZE="3">
+<P CLASS="small">
+Last updated: 8 June 2007
+</P>
+
