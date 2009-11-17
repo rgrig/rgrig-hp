@@ -1,113 +1,219 @@
-\documentclass{article}
+\documentclass[a4paper,12pt]{article}
 
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{helvet}
 \usepackage{hyperref}
-\usepackage{supertabular}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{xspace}
 
-\addtolength{\voffset}{-5mm}
-\addtolength{\textheight}{10mm}
-\addtolength{\hoffset}{-15mm}
-\addtolength{\textwidth}{30mm}
+\renewcommand*\familydefault{\sfdefault}
 
+\setlength{\hoffset}{-0.54cm}
+\setlength{\voffset}{-0.54cm}
+\setlength{\oddsidemargin}{0pt}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{0pt} % no header
+\setlength{\headsep}{0pt}
+\setlength{\textheight}{24.75cm}
+\setlength{\textwidth}{17cm}
+\setlength{\marginparsep}{0pt} % no margin
+\setlength{\marginparwidth}{0pt}
+\setlength{\marginparpush}{0pt}
+\setlength{\footskip}{27pt}
+
+\showboxdepth=10
+\showboxbreadth=100
+
+
+\definecolor{darkblue}{rgb}{0,0,0.4}
+\hypersetup{colorlinks,linkcolor=darkblue,citecolor=darkblue,urlcolor=darkblue}
+\hypersetup{
+  pdfauthor={Radu Grigore},
+  pdftitle={Curriculum Vitae of Radu Grigore}}
+
+\newcommand{\escjava}{\href{http://en.wikipedia.org/wiki/ESC/Java}{ESC\slash Java}\xspace}
 \newcommand{\nobug}{\href{http://www.nobug.com/}{NoBug Consulting}}
+\newcommand{\psl}{\href{http://www.eda-stds.org/ieee-1850/}{PSL}\xspace}
 
 %TODO: transform spaces into +. In the meantime use only simple words.
 \newcommand{\google}[1]
 {\href{http://www.google.com/search?q=#1\&btnI=I'm+feeling+lucky}{#1}}
+\renewcommand{\today}{\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space\number\year}
+\def\,#1{{\lineskiplimit=0pt \oalign{\relax#1\crcr\hidewidth,\hidewidth}}}
 
-\title{Radu Grigore}
-\author{}
+\newcommand{\entry}[2]{%
+  \hbox to \textwidth{%
+    \hbox to 2.5cm{\hfil\parfillskip=0pt #1}%
+    \hss%
+    \vtop{\hsize=14.2cm\noindent#2}%
+  }%
+  \smallskip%
+}
+
+\overfullrule=5pt
 
 \begin{document}
-\maketitle
+\centerline{\Huge\bfseries Radu Grigore}
+\centerline{\today}
+\vskip 1.5cm plus.5cm minus.5cm
 
-\begin{supertabular}{lp{125mm}}
-  \emph{Address:}& UCD CASL, University College Dublin,
-  Belfield, Dublin 4, Ireland \\
+\entry
+  {\emph{Mail}:}
+  {UCD CASL, University College Dublin, Belfield, Dublin 4, Ireland}
+\entry{\emph{Email}:}{\href{mailto:radugrigore@gmail.com}
+  {\nolinkurl{radugrigore@gmail.com}}}
+\entry{\emph{Homepage}:}{\url{http://rgrig.appspot.com/}}
+\entry{\emph{Blog}:}{\url{http://rgrig.blogspot.com/}}
 
-  \emph{Mobile:}& +353 (86) 885 8115 \\
+\section*{Education}
 
-  \emph{Email:}& radugrigore at gmail \\
+\entry{2005--2010}
+  {PhD at UCD (University College Dublin) on \emph{The
+  Design and Algorithms of a Verification Condition Generator},
+  funded by the European research project \textsc{Mobius}.}
+\entry{1998--2003}
+  {BSc at PUB (Politehnica University of Bucharest).
+  My average grade is 9.75 out of~10. My diploma
+  dissertation is on \emph{Traffic Models for Data Networks}.}
+\entry{2001}
+  {Internship in the Darmstadt Institute for Microelectronics,
+  funded by a \google{DAAD} scholarship.}
+\entry{1994--1998}
+  {``Gheorghe \,Sincai'' highschool, Bucure\,sti}
 
-  \emph{Homepage:}& \url{http://rgrig.idilis.ro/} \\
-
-  \emph{Blog:}& \url{http://rgrig.blogspot.com/} \\
-\end{supertabular}
-
-
-\section*{Academic}
-
-\begin{supertabular}{lp{120mm}}
-  2005-present& Doing a PhD at University College Dublin in applied
-  formal methods. The funding comes from the European Union
-  project Mobius. The tentative title is {\it Efficiency of
-  Extended Static Checkers}. \\
-
-  1998-2003& ``Politehnica'' University of Bucharest, Electronics and
-  Telecommunications, Networks and Telecommunication Software. I had
-  an average grade of $9.75$. My diploma thesis was on {\it Traffic 
-  Models for Data Networks\/} (Romanian only). \\
-
-  1994-1998& ``Gheorghe \c Sincai'' highschool, Bucure\c sti
-  (baccalaureate grade $8.81$) \\
-
-  2003& Designed and developed an application that computes in real-time
-  the Hurst parameter of the network traffic seen on one of computer's
-  network interfaces. \\
-
-  2001& Lead the design of an algorithm visualization tool while
-  being in Darmstadt with a \google{DAAD} scholarship. The team had
-  two members.\\
-
-\end{supertabular}
 
 \section*{Industry}
 
-\begin{supertabular}{lp{125mm}}
-
-  2004-2005& Helped design and develop a translator between two
+\entry{2008}
+  {I experimented with using kd-trees and R-trees to add 
+  orthogonal range queries on top of \google{BigTable} as a Software 
+  Engineer Intern in \google{Google}.}
+\entry{2004--2005}
+  {I helped design and develop a translator between two
   languages used in hardware verification. The client was
   \href{http://www.synopsys.com/}{Synopsys} and I was working in a
-  team of ten within \nobug. \\
+  team of ten within \nobug.}
+\entry{2003--2004}
+  {I designed and developed a PSL frontend for 
+  the model checker \google{RuleBase} while working for \nobug.}
+\entry{2003}
+  {I helped design and develop a translator from \psl
+  to finite automata with counters, whose implementation is
+  generated in a variety of procedural languages. I worked
+  in a team of two within \nobug.}
+\entry{1999}
+  {I maintained the Neuron Geographical Information System.}
 
-  2003-2004& Designed and developed from specifications a frontend for
-  \href{http://www.haifa.ibm.com/projects/verification/RB_Homepage/index.html}
-  {RuleBase} while working for \nobug.  \\
 
-  2003& Helped design and develop a translator from \google{PSL/Sugar}
-  to automata expressed in different procedural languages. I have worked
-  in a team of two within \nobug.\\
+\section*{Teaching}
 
-  1999& Maintained Neuron GIS. \\
+\entry{2009}
+  {\emph{Unix Programming} (UCD): I designed the course and
+  I delivered the lectures.}
+\entry{2007--2008}
+  {Coach of the team that represented UCD (and Ireland) in 
+  \href{http://icpc.baylor.edu/}{ACM ICPC}.}
+\entry{2008}
+  {\emph{Foundations of Computing} (UCD): I demonstrated during practicals.}
+\entry{2008}
+  {\emph{Operating Systems} (UCD): I designed the course and
+  I delivered the lectures.}
+\entry{2006--2007}
+  {\emph{Algorithmic Problem Solving} (UCD): I demonstrated during practicals.}
+\entry{2006}
+  {\emph{Data Structures and Algorithms} (UCD): I demonstrated during practicals.}
+\entry{2004}
+  {\emph{Telecommunications Software} (PUB): I demonstrated during practicals.}
+\entry{2003}
+  {\emph{Data Networks} (PUB): I demonstrated during practicals.}
 
-\end{supertabular}
+\pagebreak
 
-\clearpage
+\section*{Research Publications}
 
-\section*{Skills}
+\entry{2010}
+  {Mikol\'a\v{s} Janota, Goetz Boetterweck, Radu Grigore, 
+  and Joao Marques-Silva. 
+  \newblock \emph{How to Complete a Configuration Process?}
+  \newblock Conference on Current Trends in Theory and 
+  Practice of Computer Science (SOFSEM)}
+\entry{2009}
+  {Radu Grigore, Julien Charles, Fintan Fairmichael, and Joseph Kiniry.
+  \newblock \emph{Structured Postcondition of Unstructured Programs}.
+  \newblock ECOOP Workshop on Formal Techniques for Java-like 
+  Programs (FTfJP)}
+\entry{2009}
+  {Mikol\'a\v{s} Janota, Fintan Fairmichael, Viliam Holub,
+  Radu Grigore, Julien Charles, Dermot Cochran, and Joseph Kiniry.
+  \newblock \emph{CLOPS: A DSL for Command Line Options}.
+  \newblock IFIP Working Conference on Domain Specific Languages (DSL WC)}
+\entry{2007}
+  {Radu Grigore and Micha{\l} Moskal.
+  \newblock \emph{Edit and Verify}.
+  \newblock Workshop on First-Order Theorem Proving (FTP)}
+\entry{2007}
+  {Mikol\'a\v{s} Janota, Radu Grigore, and Micha{\l} Moskal.
+  \newblock \emph{Reachability Analysis for Annotated Code}.
+  \newblock ESEC\slash FSE Workshop on Specification
+  and Verification of Component-Based Systems (SAVCBS)}
+\entry{2005}
+  {Valentin \,Stefan Gheorghi\,t\u{a} and Radu Grigore.
+  \newblock \emph{Constructing Checkers from PSL Properties}.
+  \newblock Conference on Control Systems and
+  Computer Science (CSCS)}
 
-\begin{supertabular}{lp{120mm}}
-  GRE& verbal $510/800$, quantitative $800/800$, essay $5/6$ (2003) \\
+\section*{Open Source Contributions}
 
-  TOEFL& $287/300$ (2003) \\
+\entry{2007$\ldots$}
+  {\href{http://code.google.com/p/freeboogie/}{FreeBoogie} is a 
+  program verifier backend.}
+\entry{2007$\ldots$}
+  {AstGen generates code from abstract grammars. It is part
+  of \href{http://code.google.com/p/freeboogie/}{FreeBoogie}.}
+\entry{2008$\ldots$}
+  {\href{http://clops.sf.net/}{CLOPS} is a code generator 
+  for command line parsing.}
+\entry{2005--2009}
+  {I maintained \escjava and I implemented its reachability analysis.}
+\entry{2008}
+  {Part of my work in Google is included in \google{UzayGezen}.}
+\entry{2005}
+  {\href{http://cfind.sf.net/}{CFind} indexes and searches
+  a hard-drive. I might improve it sometime.}
 
-  algorithms& Top 10\% of the active coders at \google{TopCoder}. \\
 
-  language& I know C/C++ very well. Languages I've used include
-  Java, C\#, OCaml, Haskell, Visual Basic. I can also use Romanian and
-  English. \\
+\section*{Personal Statement}
 
-  environment& I prefer vi/emacs and Linux command line. Other
-  environments I've used include Visual Studio, Eclipse, IntelliJ IDEA. \\
+I want to build bridges in computing science. The largest rift
+is between theoreticians and practitioners, but it is certainly
+not the only one. The research community is partitioned into
+small enclaves, each with its own language and its own norms.
+Such grouping is desirable as it is impossible for one person to
+understand all the recent research results in computing science.
+Individuals cope with information overload by spending more time
+to digest information from trusted and familiar sources than from
+other sources. In such an environment it is not too surprising
+that sometimes surprising links are found between the results of
+different communities. I want to spend most of my time searching
+for connections between the results of various communities and
+translating from one language into another. The task is hard
+because it involves being abreast with more than one field.
 
-\end{supertabular}
-
-\section*{Interests and hobbies}
-
-I am interested in making programming more efficient. I'm cycling
-every day to the college and I think driving is fun. For more
-information about me you are strongly encouraged to see my
-\href{http://rgrig.idilis.ro}{homepage} and my
-\href{http://rgrig.blogspot.com}{blog}.
-
+The areas I enjoy most are \emph{program verification},
+\emph{programming languages}, and \emph{algorithms}. The goal of
+the program verification community is to find good methods to
+reason formally about the correctness of programs; the goal of
+the programming language community is to devise expressive and
+robust ways to capture algorithms; the goal of the algorithms
+community is to find efficient ways to solve repetitive problems.
+I want to continue searching for links between these areas and,
+in the process, develop tools that practitioners can use to write
+better software.
 
 \end{document}
+
