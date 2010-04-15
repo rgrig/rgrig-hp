@@ -2,17 +2,75 @@
 vim: spell
 -->
 
-<h1>Tentatively useful</h1>
+<h1>Research</h1>
 
-<p><a
-href="http://kindsoftware.com/products/opensource/FreeBoogie/">
-FreeBoogie</a>. It aims to be a backend for verification
-tools such as Spec# and ESC/Java2. At the moment it is
-just a frontend for the Boogie Programming Language
-(BoogiePL) designed by the Spec# team. <!-- TODO: The <a
-href="http://radu.ucd.ie/freeboogie/doc/">API</a> is online. -->
-A frontend for Spec# (the programming language) is available from
-Microsoft. A frontend for Java+JML is available from ETH Zurich.
+<p>
+<a href="http://www.jstarverifier.org/">jStar</a>
+is a Java program verifier that uses
+<a href="http://www.eecs.qmul.ac.uk/~ohearn/Separation_Logic_and_Local_Reasoning/SL_and_LR_Home.html">
+separation logic</a>
+for annotations. I am just starting to get familiar with the
+code and I'll be contributing in the coming years.
+</p>
+
+<p>
+<a href="http://code.google.com/p/freeboogie/">FreeBoogie</a>
+is a verification condition generator for the 
+<a href="http://research.microsoft.com/en-us/projects/boogie/">
+Boogie language</a>. It is the subject of my (submitted)
+<a href="/static/papers/rgrig_submitted_thesis.pdf">PhD thesis</a>.
+</p>
+
+<p>
+<a href="http://kind.ucd.ie/products/opensource/ESCJava2/">ESC/Java</a>
+is a static verifier for Java programs annotated with
+<a href="http://www.eecs.ucf.edu/~leavens/JML/">JML</a>. 
+I implemented a big part of the
+<a href="/static/papers/janota2007raa.pdf">reachability analysis</a>
+that is activated by the <tt>-era</tt> flag.
+</p>
+
+<p>
+<a href="http://clops.sf.net/">CLOPS</a> is a domain specific language,
+a tool, and a library that make it easy to write Java programs with
+a command line interface. I contributed to its design.
+</p>
+
+<p>
+<a href="http://bitbucket.org/michal.moskal/fx7/">Fx7</a>
+is an <a href="http://goedel.cs.uiowa.edu/smtlib/">SMT solver</a>. 
+I wrote a small module for simplifying
+formulas in <a href="/static/papers/grigore2007ev.pdf">
+certain circumstances</a> and I might maintain it a bit in the future.
+</p>
+
+<h1>Utilities</h1>
+
+<p><a href="http://cfind.sf.net/">CFIND</a> is text file indexer
+and searcher. It is severely out of date, but I still hope to find
+time to improve it.</p>
+
+<p>
+<a href="http://github.com/rgrig/twitstat">TwitStat</a> finds
+trending topics and websites from the twits in a certain area
+by using PageRank. Was developed for fun but might be upgraded
+to &quot;research&quot; some day.
+</p>
+
+<p>
+<a href="http://code.google.com/p/homework-eval/">HomeworkEval</a>
+is a web application I used to quickly grade programming homeworks.
+</p>
+
+<p>
+<a href="http://code.google.com/p/javadoc-reader/">Javadoc Reader</a>
+is a web application that makes it easier (for me) to navigate
+the Java API.
+</p>
+
+<p>
+<a href="http://github.com/rgrig/texpar">TexPar</a>
+is a tool I use to (re)format (parts) of my TeX files.
 </p>
 
 <!-- TODO: setup a website for this.
@@ -22,15 +80,14 @@ are new to a field.
 </p>
 -->
 
-<p><a href="http://cfind.sf.net/">CFIND</a>. A dead project which
-I hope to revive some day. It is supposed to offer fast text search
-across all files on UNIX systems. The `alpha' (and only) version
-indexes only .txt files and is way too memory hungry. (My 
-not-quite-working local copy has some improvements to index html,
-tex, and pdf.)
-</p>
+<h1>Hacks</h1>
 
-<h1>SPOJ</h1>
+<p>A simple SAT solver. This is my solution to a (bonus) homework 
+I assigned in the UNIX programming course.
+(<a href="/static/programs/others/sat.w">cweb</a>,
+<a href="/static/programs/others/sat.pdf">pdf</a>,
+<a href="/static/programs/others/sat.c">c</a>)
+</p>
 
 <p><a href="https://www.spoj.pl/problems/HITOMISS/">Hit or miss</a>.  A
 slightly tricky simulation. (<a href="/static/programs/spoj/hitomiss.nw">noweb</a>, <a
@@ -55,21 +112,6 @@ Hash-consing.
 (<a href="/static/programs/spoj/ascirc.w">cweb</a>,
 <a href="/static/programs/spoj/ascirc.pdf">pdf</a>,
 <a href="/static/programs/spoj/ascirc.cpp">cpp</a>)</p>
-
-
-<!--
-Template for SPOJ
-
-<p><a href="https://www.spoj.pl/problems/NAME/">LNAME</a>.  
-DESCR. 
-(<a href="/static/programs/spoj/NAME.nw">noweb</a>, 
-<a href="/static/programs/spoj/NAME.pdf">pdf</a>, 
-<a href="/static/programs/spoj/NAME.cpp">cpp</a>)</p>
-
-
--->
-
-<h1>Others</h1>
 
 <p>A cute data structure, the min-queue. 
 (<a href="/static/programs/others/minqueue.w">cweb</a>,
@@ -124,23 +166,9 @@ acyclic control flow graph into dynamic single assignment form.
 <a href="/static/programs/taocp/strings1.pdf">pdf</a>,
 <a href="/static/programs/taocp/strings1.c">c</a>)</p>
 
-<p>A simple SAT solver.
-(<a href="/static/programs/others/sat.w">cweb</a>,
-<a href="/static/programs/others/sat.pdf">pdf</a>,
-<a href="/static/programs/others/sat.c">c</a>)</p>
-</p>
-
-
-<h1>Note</h1>
-
-<p>I cannot provide links to some programs I helped write because
-they were developed in a commercial setting. They are mentioned in
-my CV. Programs I write in 
-<a href="http://www.topcoder.com/">TopCoder</a> 
-competitions are available from their website.</p>
 
 <HR SIZE="3">
 <P CLASS="small">
-Last updated: 25 May 2009
+Last updated: 15 April 2010
 </P>
 
