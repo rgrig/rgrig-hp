@@ -17,8 +17,7 @@ code and I'll be contributing in the coming years.
 <a href="http://code.google.com/p/freeboogie/">FreeBoogie</a>
 is a verification condition generator for the 
 <a href="http://research.microsoft.com/en-us/projects/boogie/">
-Boogie language</a>. It is the subject of my (submitted)
-<a href="/static/papers/rgrig_submitted_thesis.pdf">PhD thesis</a>.
+Boogie language</a>.
 </p>
 
 <p>
@@ -46,129 +45,13 @@ certain circumstances</a> and I might maintain it a bit in the future.
 
 <h1>Utilities</h1>
 
-<p><a href="http://cfind.sf.net/">CFIND</a> is text file indexer
-and searcher. It is severely out of date, but I still hope to find
-time to improve it.</p>
-
-<p>
-<a href="http://github.com/rgrig/twitstat">TwitStat</a> finds
-trending topics and websites from the twits in a certain area
-by using PageRank. Was developed for fun but might be upgraded
-to &quot;research&quot; some day.
-</p>
-
 <p>
 <a href="http://code.google.com/p/homework-eval/">HomeworkEval</a>
 is a web application I used to quickly grade programming homeworks.
 </p>
 
-<p>
-<a href="http://code.google.com/p/javadoc-reader/">Javadoc Reader</a>
-is a web application that makes it easier (for me) to navigate
-the Java API.
-</p>
-
-<p>
-<a href="http://github.com/rgrig/texpar">TexPar</a>
-is a tool I use to (re)format (parts) of my TeX files.
-</p>
-
-<!-- TODO: setup a website for this.
-<p><a href="citations.html">Citations</a>. A tool that helps you
-get an idea how good various conferences are, especially if you
-are new to a field.
-</p>
--->
-
-<h1>Hacks</h1>
-
-<p>A simple SAT solver. This is my solution to a (bonus) homework 
-I assigned in the UNIX programming course.
-(<a href="/static/programs/others/sat.w">cweb</a>,
-<a href="/static/programs/others/sat.pdf">pdf</a>,
-<a href="/static/programs/others/sat.c">c</a>)
-</p>
-
-<p><a href="https://www.spoj.pl/problems/HITOMISS/">Hit or miss</a>.  A
-slightly tricky simulation. (<a href="/static/programs/spoj/hitomiss.nw">noweb</a>, <a
-href="/static/programs/spoj/hitomiss.pdf">pdf</a>, <a
-href="/static/programs/spoj/hitomiss.cpp">cpp</a>)</p>
-
-<p><a href="https://www.spoj.pl/problems/SCITIES/">Selfish cities</a>.  
-The Hungarian algorithm. 
-(<a href="/static/programs/spoj/scities.nw">noweb</a>, 
-<a href="/static/programs/spoj/scities.pdf">pdf</a>, 
-<a href="/static/programs/spoj/scities.cpp">cpp</a>)</p>
-
-<p><a href="https://www.spoj.pl/problems/LANDSCAP/">Landscaping</a>.  
-Dynamic programming on a tree. Has some interesting complexity analysis.
-(<a href="/static/programs/spoj/landscap.w">cweb</a>,
-<a href="/static/programs/spoj/landscap.mp">metapost</a>,
-<a href="/static/programs/spoj/landscap.pdf">pdf</a>, 
-<a href="/static/programs/spoj/landscap.cpp">cpp</a>)</p>
-
-<p><a href="https://www.spoj.pl/problems/ASCIRC/">Assembler circuits</a>.
-Hash-consing.
-(<a href="/static/programs/spoj/ascirc.w">cweb</a>,
-<a href="/static/programs/spoj/ascirc.pdf">pdf</a>,
-<a href="/static/programs/spoj/ascirc.cpp">cpp</a>)</p>
-
-<p>A cute data structure, the min-queue. 
-(<a href="/static/programs/others/minqueue.w">cweb</a>,
-<a href="/static/programs/others/minqueue.pdf">pdf</a>,
-<a href="/static/programs/others/minqueue.c">cpp</a>)
-</p>
-
-<p>A program that reads in a list of Debian package descriptions
-and dumps a 
-<a href="ftp://dimacs.rutgers.edu/pub/challenge/satisfiability/doc/satformat.dvi">
-DIMACS SAT CNF format</a>, which is supposed to unambiguously express
-the semantics. This hack plus a 10-lines hack in
-<a href="http://minisat.se/">MiniSAT</a> do the same as
-<a href="http://edos.debian.net/edos-debcheck/">edos-debcheck</a>, 
-modulo some bugs.
-(<a href="/static/programs/others/bool.py.html">python html</a>)
-</p>
-
-<p>My road to solving problem G from NWERC2007 (ACM ICPC
-regional). The task is to efficiently find summits given
-a height map.
-(<a href="/static/programs/others/nwerc2007.g.tar.bz2">bz2 archive with
-three programs, from slow to fast</a>)</p>
-
-<p>`In-place' inverse of a permutation (Algorithm J and exercise 1.3.3-13).
-(<a href="/static/programs/taocp/invperm2.w">cweb</a>,
-<a href="/static/programs/taocp/invperm2.pdf">pdf</a>,
-<a href="/static/programs/taocp/invperm2.c">c</a>)</p>
-
-<p>Multiplication of cycle permutations (exercise 1.3.3-8).
-(<a href="/static/programs/taocp/perm.w">cweb</a>,
-<a href="/static/programs/taocp/perm.pdf">pdf</a>,
-<a href="/static/programs/taocp/perm.c">c</a>)</p>
-
-<p>`In-place' inverse of a permutation (Algorithm I).
-(<a href="/static/programs/taocp/invperm.w">cweb</a>,
-<a href="/static/programs/taocp/invperm.pdf">pdf</a>,
-<a href="/static/programs/taocp/invperm.c">c</a>)</p>
-
-<p>This is inspired by Knuth's article <i>Mathematics and
-Computer Science: Coping with Finiteness</i>. The program
-counts self-avoiding walks on a rectangular grid by brute force.
-Much smarter techniques exist.
-(<a href="/static/programs/taocp/selfavoid.w">cweb</a>,
-<a href="/static/programs/taocp/selfavoid.pdf">pdf</a>,
-<a href="/static/programs/taocp/selfavoid.c">c</a>)</p>
-
-<p>Counting some strange strings. Actually I encountered these
-strings while thinking about how to optimally transform a directed
-acyclic control flow graph into dynamic single assignment form.
-(<a href="/static/programs/taocp/strings1.w">cweb</a>,
-<a href="/static/programs/taocp/strings1.pdf">pdf</a>,
-<a href="/static/programs/taocp/strings1.c">c</a>)</p>
-
-
 <HR SIZE="3">
 <P CLASS="small">
-Last updated: 15 April 2010
+Last updated: 17 March 2011
 </P>
 
