@@ -1,5 +1,5 @@
 application: rgrig
-version: 1
+version: 2
 runtime: python
 api_version: 1
 
@@ -10,6 +10,7 @@ handlers:
  
 - url: /static
   static_dir: static
+  expiration: '365D'
 
 - url: /.*
   script: rgrig.py
