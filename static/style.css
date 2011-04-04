@@ -64,6 +64,10 @@ ul {
   color : Maroon;
 }
 
+.mono {
+  font-family : monospace;
+}
+
 .nobullet  {
   list-style-type : none;
   list-style-image : none;
