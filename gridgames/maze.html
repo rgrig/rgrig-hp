@@ -5,6 +5,8 @@
 var SIZE = {{size}}
 
 var BACKGROUND = '#ddf'
+var PAD = 4
+var THICKNESS = 6
 
 var DX = [+1,  0, -1,  0]
 var DY = [ 0, +1,  0, -1]
@@ -28,13 +30,21 @@ var target
 var imagesToLoad
 
 function start() {
+  inplay = 0
+  if (!(SIZE >= 2 && Math.floor(SIZE) == SIZE)) {
+    alert('Invalid size.')
+    return
+  }
   canvas = document.getElementById('canvas')
   twod = canvas.getContext('2d')
-  unit = Math.floor((Math.min(window.innerHeight, window.innerHeight) - 50) / SIZE)
+  unit = Math.floor((Math.min(window.innerHeight, window.innerHeight) - 10 * PAD) / SIZE)
+  if (unit - THICKNESS - 2 * PAD < 5) {
+    alert('Too little space. Maximize window or decrease size.')
+    return
+  }
   imagesToLoad = 2
   player = loadImage('static/pingu-0.png')
   target = loadImage('static/cheerios-0.png')
-  inplay = 0
 }
 
 function loadImage(fn) {
@@ -47,8 +57,8 @@ function loadImage(fn) {
 }
 
 function play() {
-  canvas.width = SIZE * unit
-  canvas.height = SIZE * unit
+  canvas.width = SIZE * unit + 2 * PAD
+  canvas.height = SIZE * unit + 2 * PAD
   generateMaze()
   player.i = player.j = 0
   maze[ij(0, 0)] |= PLAYER
@@ -96,23 +106,26 @@ function generateMaze() {
 }
 
 function drawMaze() {
-  twod.beginPath()
-  twod.rect(0, 0, SIZE * unit, SIZE * unit)
-  twod.closePath()
+  twod.clearRect(0, 0, canvas.width, canvas.height)
   twod.fillStyle = BACKGROUND
-  twod.fill()
+  twod.fillRect(PAD, PAD, SIZE * unit, SIZE * unit)
   var hu = unit / 2
+  twod.strokeStyle = twod.fillStyle = '#00d'
+  twod.lineWidth = THICKNESS
   for (var i = 0; i < SIZE; ++i) for (var j = 0; j < SIZE; ++j) {
-    twod.setTransform(1, 0, 0, 1, (i + 0.5) * unit, (j + 0.5) * unit)
+    twod.setTransform(1, 0, 0, 1, (i + 0.5) * unit + PAD, (j + 0.5) * unit + PAD)
     for (var k = 0; k < 4; ++k) {
       if (!((maze[ij(i, j)] >> k)&1)) {
         twod.beginPath()
-        twod.lineWidth = 3
-        twod.moveTo(hu - 1, hu)
-        twod.lineTo(hu - 1, -hu)
+        twod.moveTo(hu, hu)
+        twod.lineTo(hu, -hu)
         twod.closePath()
-        twod.strokeStyle = '#00f'
         twod.stroke()
+        twod.beginPath()
+        twod.arc(hu, hu, THICKNESS / 2, 0, 2 * Math.PI)
+        twod.arc(hu, -hu, THICKNESS / 2, 0, 2 * Math.PI)
+        twod.closePath()
+        twod.fill()
       }
       twod.rotate(Math.PI / 2)
     }
@@ -134,11 +147,8 @@ function handleKey(e) {
   maze[p_idx] |= PLAYER
   if (maze[p_idx]&TARGET) {
     inplay = 0
-    twod.beginPath()
-    twod.rect(0, 0, unit * SIZE, unit * SIZE)
-    twod.closePath()
     twod.fillStyle = '#0f0'
-    twod.fill()
+    twod.fillRect(0, 0, canvas.width, canvas.height)
     window.setTimeout(play, 2000)
   } else {
     drawPlayer(player)
@@ -146,15 +156,17 @@ function handleKey(e) {
 }
 
 function clearSquare(p) {
-  twod.beginPath()
-  twod.rect(p.i * unit + 3, p.j * unit + 3, unit - 6, unit - 6)
-  twod.closePath()
   twod.fillStyle = BACKGROUND
-  twod.fill()
+  twod.fillRect
+    ( PAD + p.i * unit + THICKNESS / 2, PAD + p.j * unit + THICKNESS / 2
+    , unit - THICKNESS, unit - THICKNESS )
 }
 
 function drawPlayer(p) {
-  twod.drawImage(p.img, p.i * unit + 3, p.j * unit + 3, unit - 6, unit - 6)
+  twod.drawImage
+    ( p.img
+    , 2 * PAD + p.i * unit + THICKNESS / 2, 2 * PAD + p.j * unit + THICKNESS / 2
+    , unit - THICKNESS - 2 * PAD, unit - THICKNESS - 2 * PAD)
 }
 
 function checkMaze() {
