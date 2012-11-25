@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head><title>maze</title>
+<script>
+var SIZE = {{size}}
+
+var BACKGROUND = '#ddf'
+
+var DX = [+1,  0, -1,  0]
+var DY = [ 0, +1,  0, -1]
+var EAST = 1 << 0
+var SOUTH = 1 << 1
+var WEST = 1 << 2
+var NORTH = 1 << 3
+var PLAYER = 1 << 4
+var TARGET = 1 << 5
+var MARKED = 1 << 6
+
+var canvas
+var twod
+
+var unit
+
+var inplay
+var maze
+var player
+var target
+var imagesToLoad
+
+function start() {
+  canvas = document.getElementById('canvas')
+  twod = canvas.getContext('2d')
+  unit = Math.floor((Math.min(window.innerHeight, window.innerHeight) - 50) / SIZE)
+  imagesToLoad = 2
+  player = loadImage('static/pingu-0.png')
+  target = loadImage('static/cheerios-0.png')
+  inplay = 0
+}
+
+function loadImage(fn) {
+  var r = { img : new Image(), i : 0, j : 0 }
+  r.img.onload = function() {
+    if (--imagesToLoad == 0) play()
+  }
+  r.img.src = fn
+  return r
+}
+
+function play() {
+  canvas.width = SIZE * unit
+  canvas.height = SIZE * unit
+  generateMaze()
+  player.i = player.j = 0
+  maze[ij(0, 0)] |= PLAYER
+  drawPlayer(player)
+  target.i = target.j = SIZE - 1
+  maze[ij(target.i, target.j)] |= TARGET
+  drawPlayer(target)
+  inplay = 1
+}
+
+function generateMaze() {
+  maze = new Array(SIZE * SIZE)
+  var toSee = SIZE * SIZE - 1
+  var here = { i : 0, j : 0 }
+  maze[0] |= MARKED
+  while (toSee > 0) {
+    var next
+    var direction
+    var neighbors = 0
+    for (var k = 0; k < 4; ++k) {
+      var i = here.i + DX[k]
+      var j = here.j + DY[k]
+      if (!(0 <= i && i < SIZE)) continue
+      if (!(0 <= j && j < SIZE)) continue
+      ++neighbors
+      if (Math.random() < 1 / neighbors) {
+        next = { i : i, j : j }
+        direction = k
+      }
+    }
+    h_idx = ij(here.i, here.j)
+    n_idx = ij(next.i, next.j)
+    if (!(maze[n_idx]&MARKED)) {
+      --toSee
+      maze[n_idx] |= MARKED
+      maze[h_idx] |= 1 << direction
+      maze[n_idx] |= 1 << ((direction + 2) % 4)
+    }
+    here = next
+  }
+  for (var i = 0; i < SIZE * SIZE; ++i) maze[i] &= ~MARKED
+  checkMaze()
+  drawMaze()
+  inplay = 1
+}
+
+function drawMaze() {
+  twod.beginPath()
+  twod.rect(0, 0, SIZE * unit, SIZE * unit)
+  twod.closePath()
+  twod.fillStyle = BACKGROUND
+  twod.fill()
+  var hu = unit / 2
+  for (var i = 0; i < SIZE; ++i) for (var j = 0; j < SIZE; ++j) {
+    twod.setTransform(1, 0, 0, 1, (i + 0.5) * unit, (j + 0.5) * unit)
+    for (var k = 0; k < 4; ++k) {
+      if (!((maze[ij(i, j)] >> k)&1)) {
+        twod.beginPath()
+        twod.lineWidth = 3
+        twod.moveTo(hu - 1, hu)
+        twod.lineTo(hu - 1, -hu)
+        twod.closePath()
+        twod.strokeStyle = '#00f'
+        twod.stroke()
+      }
+      twod.rotate(Math.PI / 2)
+    }
+  }
+  twod.setTransform(1, 0, 0, 1, 0, 0)
+}
+
+function handleKey(e) {
+  if (!inplay) return
+  if (!(37 <= e.keyCode && e.keyCode <= 40)) return
+  var k = (e.keyCode - 37 + 2) % 4
+  var p_idx = ij(player.i, player.j)
+  if (!((maze[p_idx]>>k)&1)) return
+  var np = { i : player.i + DX[k], j : player.j + DY[k], img : player.img }
+  clearSquare(player)
+  maze[p_idx] &= ~PLAYER
+  player = np
+  p_idx = ij(player.i, player.j)
+  maze[p_idx] |= PLAYER
+  if (maze[p_idx]&TARGET) {
+    inplay = 0
+    twod.beginPath()
+    twod.rect(0, 0, unit * SIZE, unit * SIZE)
+    twod.closePath()
+    twod.fillStyle = '#0f0'
+    twod.fill()
+    window.setTimeout(play, 2000)
+  } else {
+    drawPlayer(player)
+  }
+}
+
+function clearSquare(p) {
+  twod.beginPath()
+  twod.rect(p.i * unit + 3, p.j * unit + 3, unit - 6, unit - 6)
+  twod.closePath()
+  twod.fillStyle = BACKGROUND
+  twod.fill()
+}
+
+function drawPlayer(p) {
+  twod.drawImage(p.img, p.i * unit + 3, p.j * unit + 3, unit - 6, unit - 6)
+}
+
+function checkMaze() {
+  for (var i = 0; i < SIZE; ++i) for (j = 0; j < SIZE; ++j) {
+    for (var k = 0; k < 2; ++k) {
+      var ii = i + DX[k]
+      var jj = j + DY[k]
+      if (ii == SIZE || jj == SIZE) continue
+      assert (((maze[ij(i, j)]>>k)&1) == ((maze[ij(ii, jj)]>>(k+2))&1),
+        'directed ' + i + ' ' + j + ' ' + k)
+    }
+  }
+}
+
+function ij(i, j) {
+  assert(0 <= i && i < SIZE, 'i out of range')
+  assert(0 <= j && j < SIZE, 'j out of range')
+  return i * SIZE + j
+}
+
+function assert(b, m) {
+  if (!b) console.log('INTERNAL: ' + m)
+}
+</script>
+</head>
+<body onload="start()" onkeyup="handleKey(event)">
+<center><canvas id="canvas"></canvas></center>
+</body>
+</html>

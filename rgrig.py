@@ -1,14 +1,16 @@
 import os
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
-from google.appengine.ext.webapp.util import run_wsgi_app
+import webapp2
+import jinja2
+
+jinja_environment = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
 pages = [('papers', "Papers written by RGrig"),
         ('teaching', "RGrig's teaching activities"),
         ('puzzles', "Some puzzles that you can use at conferences"),
         ('programs', "Some programs written by RGrig")]
 
-class MainPage(webapp.RequestHandler):
+class MainPage(webapp2.RequestHandler):
   def get(self):
     template_values = dict()
     file_name = '/welcome.html'
@@ -21,15 +23,9 @@ class MainPage(webapp.RequestHandler):
     for p in pages:
       if self.request.path.find(p[0]) != -1:
         template_values['title'] = p[1]
-    path = os.path.join(os.path.dirname(__file__), 'index.html')
-    self.response.out.write(template.render(path, template_values))
+    template = jinja_environment.get_template('index.html')
+    self.response.out.write(template.render(template_values))
 
 hooks = [('/', MainPage)]
 for p in pages: hooks.append(('/'+p[0]+'.html', MainPage))
-application = webapp.WSGIApplication(hooks, debug=True)
-
-def main():
-  run_wsgi_app(application)
-
-if __name__ == "__main__":
-  main()
+app = webapp2.WSGIApplication(hooks, debug=True)
