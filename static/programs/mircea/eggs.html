@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head><title>eggs</title></head>
+<script>
+var EMPTY = 0
+var OBSTACLE = 1
+var TARGET = 2
+var PLAYER = 3
+var MONSTER = 4
+var MARKED = 5
+
+var DX = [-1, 0, +1, 0]
+var DY = [0, -1, 0, +1]
+
+var MONSTER_TIME = 100
+
+var canvas
+var h, w
+var imagesToLoad
+var inplay
+var map
+var monsters
+var monsterInterval
+var pad = 10
+var player
+var size
+var target
+var todiscover
+var twod
+
+function start() {
+  canvas = document.getElementById('board')
+  twod = canvas.getContext('2d')
+  size = 19
+  imagesToLoad = 6
+  player = loadImage('eggs.png')
+  target = loadImage('target.png')
+  monsters = new Array()
+  for (var i = 0; i < 4; ++i) monsters[i] = loadImage('m' + (i+1) + '.png')
+}
+function loadImage(fn) {
+  var r = { img : new Image(), x : 0, y : 0 }
+  r.img.onload = function() {
+    if (--imagesToLoad == 0) play()
+  }
+  r.img.src = fn
+  return r
+}
+function play() {
+  w = (canvas.width - pad) / size;
+  h = (canvas.height - pad) / size;
+  do { generateMap() } while (!hasSolution())
+  monsterToMove = -1
+  monsterInterval = window.setInterval(moveMonsters, MONSTER_TIME)
+  inplay = 1
+}
+function generateMap() {
+  canvas.width = canvas.width
+  map = new Array()
+  for (var i = 0; i < size * size; ++i) map[i] = EMPTY
+  grid()
+  player.x = player.y = size - 1
+  drawPlayer()
+  map[size * size - 1] = PLAYER
+  target.x = target.y = 0
+  drawImage(target)
+  map[0] = TARGET
+  var monstersTogo = 4
+  var obstaclesTogo = Math.floor(size * size / 3.5)
+  var squaresTogo = size * size - 1 // target and player chosen
+  for (var i = 0; i < size; ++i) for (var j = 0; j < size; ++j) {
+    --squaresTogo
+    if (map[i * size + j] != EMPTY) continue
+    var r = Math.random()
+    var a = monstersTogo / squaresTogo
+    var b = obstaclesTogo / squaresTogo
+    if (r < a) {
+      var m = monsters[--monstersTogo]
+      m.x = i
+      m.y = j
+      map[i * size + j] = MONSTER
+      drawImage(m)
+    } else if (r < a + b) {
+      map[i * size + j] = OBSTACLE
+      fillSquare(i, j)
+      --obstaclesTogo
+    }
+  }
+}
+
+function hasSolution() {
+  var result = 0
+  var que = new Array()
+  assert (map[size * size - 1] == PLAYER)
+  que.push({x : size - 1, y : size - 1})
+  while (que.length > 0) {
+    var xy = que.shift()
+    for (var d = 0; d < 4; ++d) {
+      var nxy = { x : xy.x + DX[d], y : xy.y + DY[d] }
+      if (!(0 <= nxy.x && nxy.x < size)) continue
+      if (!(0 <= nxy.y && nxy.y < size)) continue
+      if (map[nxy.x * size + nxy.y] == TARGET) result = 1
+      if (map[nxy.x * size + nxy.y] != EMPTY) continue
+      map[nxy.x * size + nxy.y] = MARKED
+      que.push(nxy)
+    }
+  }
+  for (var i = 0; i < size * size; ++i)
+    if (map[i] == MARKED) map[i] = EMPTY
+  return result
+}
+
+function moveMonsters() {
+  monsterToMove = (monsterToMove + 1) % monsters.length
+  var m = monsters[monsterToMove]
+  var d
+  var nm = new Array(4)
+  var ps = 0
+  for (d = 0; d < 4; ++d) {
+    nm[d] = { x : m.x + DX[d], y : m.y + DY[d], img : m.img, p : 0 }
+    if (!validMonsterPos(nm[d]))
+      nm[d].p = 0
+    else if (l1(nm[d], player) < l1(m, player))
+      nm[d].p = 6
+    else if (l1(nm[d], player) == l1(m, player))
+      nm[d].p = 2
+    else
+      nm[d].p = 1
+    ps += nm[d].p
+  }
+  if (ps == 0) return
+  var r = Math.random() * ps
+  for (d = 0; r > 0; ++d) r -= nm[d].p
+  clearPos(m)
+  monsters[monsterToMove] = nm[d-1]
+  drawMonster(nm[d-1])
+}
+
+function l1(a, b) {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+}
+function drawPlayer() {
+  var k = map[player.x * size + player.y]
+  assert (k != OBSTACLE)
+  assert (k != PLAYER)
+  if (k == TARGET) win()
+  else if (k >= MONSTER) lose()
+  else {
+    assert (k == EMPTY)
+    map[player.x * size + player.y] = PLAYER
+    drawImage(player)
+  }
+}
+function drawMonster(m) {
+  var k = map[m.x * size + m.y]
+  assert (k != OBSTACLE)
+  assert (k != TARGET)
+  assert (k < MONSTER)
+  if (k == PLAYER) lose()
+  else {
+    assert (k == EMPTY)
+    map[m.x * size + m.y] = MONSTER
+    drawImage(m)
+  }
+}
+function drawImage(o) {
+  var x = o.x * w + pad / 2 + 2
+  var y = o.y * h + pad / 2 + 2
+  twod.drawImage(o.img, x, y, w - 4, h - 4)
+}
+function handleKey(e) {
+//  document.getElementById('dbg').innerHTML += (' code='+e.keyCode)
+  if (!inplay) return
+  if (!(37 <= e.keyCode && e.keyCode <= 40)) return
+  var np =
+    { x : player.x + DX[e.keyCode - 37]
+    , y : player.y + DY[e.keyCode - 37]
+    , img : player.img }
+  if (!validPlayerPos(np)) return
+  clearPos(player)
+  player = np
+  drawPlayer()
+}
+function validPlayerPos(p) {
+//  document.getElementById('dbg').innerHTML += ('  x='+p.x+' y='+p.y)
+  return inBounds(p) && map[p.x * size + p.y] != OBSTACLE
+}
+function validMonsterPos(p) {
+  var k = map[p.x * size + p.y];
+  return inBounds(p) && (k == EMPTY || k == PLAYER)
+}
+function inBounds(p) {
+  if (!(0 <= p.x && p.x < size)) return 0
+  if (!(0 <= p.y && p.y < size)) return 0
+  return 1
+}
+function terminate(color) {
+  inplay = 0
+  window.clearInterval(monsterInterval)
+  twod.fillStyle = color
+  twod.fillRect(0,0,canvas.width, canvas.height)
+  window.setTimeout(play, 1000)
+}
+function win() { terminate('#0f0') }
+function lose() { terminate('#f00') }
+function grid() {
+  twod.beginPath()
+  for (var i = 0; i <= size; ++i) {
+    twod.moveTo(i * w + pad/2, pad/2)
+    twod.lineTo(i * w + pad/2, canvas.height-pad/2)
+  }
+  for (var i = 0; i <= size; ++i) {
+    twod.moveTo(pad / 2, i * h + pad / 2)
+    twod.lineTo(canvas.width - pad / 2, i * h + pad / 2)
+  }
+  twod.strokeStyle = '#000'
+  twod.stroke()
+}
+function clearPos(p) {
+  map[p.x * size + p.y] = EMPTY
+  clearSquare(p.x, p.y)
+}
+function fillSquare(i, j) {
+  twod.fillStyle = '#900'
+  twod.fillRect(i * w + pad / 2 + 2, j * h + pad / 2 + 2, w - 4, h - 4)
+}
+function clearSquare(i, j) {
+  twod.clearRect(i * w + pad / 2 + 1, j * h + pad / 2 + 1, w - 2, h - 2)
+}
+function getCanvasPos(e) {
+  var x
+  var y
+  if (e.pageX != undefined && e.pageY != undefined) {
+    x = e.pageX
+    y = e.pageY
+  }
+  else {
+    x = e.clientX + document.body.scrollLeft +
+      document.documentElement.scrollLeft
+    y = e.clientY + document.body.scrollTop +
+      document.documentElement.scrollTop
+  }
+  x -= canvas.offsetLeft
+  y -= canvas.offsetTop
+  return {x : x, y : y}
+}
+function assert(b) {
+  if (!b) alert('assertion failed')
+}
+</script>
+<body onload="start()" onkeyup="handleKey(event)">
+<center><canvas id="board" width="600" height="600"></canvas></center>
+<div id="dbg"></div>
+</body>
+</html>
