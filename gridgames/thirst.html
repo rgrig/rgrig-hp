@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head><title>thirst</title>
+<script>
+var BACKGROUND = '#ddf'
+var EPS = 1e-6
+var MARGIN = 50
+var PAD = 4
+var TIMESTEP = 100
+
+var O_r = 10
+var V_len = O_r * 3
+var V_a = V_len / Math.sqrt(2)
+var V_b = V_len - V_a
+
+var canvas
+var twod
+var state
+var timer
+
+var inplay
+
+function start() {
+  inplay = 0
+  canvas = document.getElementById('canvas')
+  twod = canvas.getContext('2d')
+  play()
+}
+
+var old_resize = window.onresize
+window.onresize = function (e) {
+  if (old_resize) { old_resize(e) }
+  size = Math.min(window.innerWidth, window.innerHeight) - 2 * PAD
+  canvas.width = canvas.height = size
+  assert (size > 300, 'window too small')
+}
+
+function play() {
+  window.onresize()
+  initializeState(3)
+  drawState()
+  timer = window.setInterval(refresh, TIMESTEP)
+  inplay = 1
+}
+
+function initializeState(n) {
+  state = { x : [], y : [], vx : [], vy : [], ax : [], ay : [], n : n }
+  for (var i = 1; i <= n; ++i) {
+    state.x[i] = Math.random() * 0.6 + 0.2
+    state.y[i] = Math.random() * 0.6 + 0.2
+    state.vx[i] = Math.random() * 0.1 - 0.05
+    state.vy[i] = Math.random() * 0.1 - 0.05
+    state.ax[i] = state.ay[i] = 0
+  }
+  state.x[0] = Math.random() * 0.1 + 0.1
+  state.y[0] = Math.random() * 0.1 + 0.1
+  state.vx[0] = state.vy[0] = state.ax[0] = state.ay[0] = 0
+}
+
+function drawState() {
+  twod.beginPath()
+  twod.arc(sx(state.x[0]), sy(state.y[0]), O_r, 0, 2 * Math.PI)
+  twod.fillStyle = '#00f'
+  twod.fill()
+  twod.strokeStyle = '#000'
+  twod.stroke()
+  for (var i = 1; i <= state.n; ++i) {
+    ps = [{x:V_a, y:0}, {x:-V_b, y:V_len/4}, {x:-V_b, y:-V_len/4}]
+    //alpha = Math.random() * 2 * Math.PI
+    alpha = 0
+    if (Math.abs(state.vx[i]) > EPS || Math.abs(state.vy[i]) > EPS) {
+      alpha = Math.atan2(state.vy[i], state.vx[i])
+    }
+    for (var j = 0; j < ps.length; ++j) {
+      ps[j] = rotate(ps[j], alpha)
+      ps[j].y = -ps[j].y // accounts for sy's axis reversal
+      ps[j] = translate(ps[j], sx(state.x[i]), sy(state.y[i]))
+    }
+    twod.beginPath()
+    twod.moveTo(ps[0].x, ps[0].y)
+    for (var j = 1; j < ps.length; ++j) {
+      twod.lineTo(ps[j].x, ps[j].y)
+    }
+    twod.lineTo(ps[0].x, ps[0].y)
+    twod.fillStyle = '#f00'
+    twod.fill()
+    twod.strokeStyle = '#000'
+    twod.stroke()
+  }
+}
+
+function sx(x) { return canvas.width * x; }
+function sy(y) { return canvas.height * (1-y); }
+function translate(p, dx, dy) { return { x : p.x + dx, y : p.y + dy } }
+function rotate(p, a) {
+  return { x : p.x * Math.cos(a) - p.y * Math.sin(a), y : p.x * Math.sin(a) + p.y * Math.cos(a) }
+}
+
+function refresh() {
+  dt = TIMESTEP / 1000
+  for (var i = 0; i <= state.n; ++i) {
+    state.x[i] += state.vx[i] * dt
+    state.y[i] += state.vy[i] * dt
+    state.vx[i] += state.ax[i] * dt
+    state.vy[i] += state.ay[i] * dt
+  }
+  // TODO: update accelerations
+  twod.clearRect(0, 0, canvas.width, canvas.height)
+  drawState()
+}
+
+function handleKey(e) {
+  if (!inplay) return
+  if (!(37 <= e.keyCode && e.keyCode <= 40)) return
+}
+
+function assert(b, m) {
+  if (!b) console.log('INTERNAL: ' + m)
+}
+
+</script>
+</head>
+<body onload="start()" onkeyup="handleKey(event)">
+<center><canvas id="canvas"></canvas></center>
+</body>
+</html>
