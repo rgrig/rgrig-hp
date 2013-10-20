@@ -1,20 +1,45 @@
 <!DOCTYPE html>
+<!-- TODO begin
+  * use only [0,1] coordinates/distances before printing
+  * improve simulation with viscosity
+  * bottle should push rocks only by touch
+  * rocks should destroy spikes
+  * adaptive number of enemies
+  * enemies should avoid rocks
+-->
 <html>
 <head><title>thirst</title>
 <script>
 var BETA = 2 // how forces decrease
-var EPS = 1e-6
-var GAMMA = 0.07 // friction/viscosity coefficent
-var IOTA = 0.1
+var EPS = 1e-9
+var GAMMA = 1 // friction/viscosity coefficent
 var MARGIN = 50
 var PAD = 25
 var TIMESTEP = 1000 / 30
 
-var O_r = 15
-var V_len = O_r
+var ENGINE_A = 0.8 * GAMMA
+
+var WA = 0.1
+var WD = 0.05
+
+var O_mass = 1e-4
+var O_r = 0.03
+var P_sz = O_r
+var P_mass = 1e-4
+var V_len = 0.05
 var V_a = V_len / Math.sqrt(2)
 var V_b = V_len - V_a
-var V_mass = 0.01
+var V_mass = 1e-4
+
+var V_shape =
+  [ { x : V_a, y : 0 }
+  , { x : -V_b, y : V_len/4 }
+  , { x : -V_b, y : -V_len/4 } ]
+var P_shape =
+  [ { x : -P_sz, y : -P_sz }
+  , { x : -P_sz, y : P_sz }
+  , { x : P_sz, y : P_sz }
+  , { x : P_sz, y : -P_sz } ]
 
 var canvas
 var twod
@@ -26,7 +51,8 @@ var commands = 0
 var timer
 
 var inplay
-var enemiesCount = 20
+var enemiesCount = 0
+var enemiesIncrement = -1
 
 function start() {
   inplay = 0
@@ -50,6 +76,8 @@ window.onresize = function (e) {
   if (old_resize) { old_resize(e) }
   size = Math.min(window.innerWidth, window.innerHeight) - 2 * PAD
   canvas.width = canvas.height = size
+  twod.setTransform(size, 0, 0, -size, 0, size)
+  twod.lineWidth = 0.004
   assert (size > 300, 'window too small')
 }
 
@@ -64,45 +92,66 @@ function play() {
 }
 
 function initializeState(n) {
-  state = { x : [], y : [], vx : [], vy : [], ax : [], ay : [], n : n, ax0 : 0, ay0 : 0 }
-  for (var i = 1; i <= n; ++i) {
-    state.x[i] = Math.random() * 0.8 + 0.2
-    state.y[i] = Math.random() * 0.8 + 0.2
-    state.vx[i] = Math.random() * 0.1 - 0.05
-    state.vy[i] = Math.random() * 0.1 - 0.05
-    state.ax[i] = state.ay[i] = 0
+  state = { n : n, p : Math.ceil(5 * Math.random()) /* 0 bottle; 1..n enemies; n+1..n+p rocks */ }
+
+  state[0] = { x : 0.1, y : 0.1, vx : 0, vy : 0, ax : 0, ay : 0 }
+  for (var i = 1; i <= state.n; ++i) {
+    state[i] =
+      { x : Math.random() * 0.8 + 0.2
+      , y : Math.random() * 0.8 + 0.2
+      , vx : Math.random() * 0.1 - 0.05
+      , vy : Math.random() * 0.1 - 0.05
+      , ax : 0
+      , ay : 0 }
   }
-  state.x[0] = state.y[0] = 0.1
-  state.vx[0] = state.vy[0] = 0
-  state.ax[0] = state.ay[0] = 0
+  for (var i = state.n + 1; i <= state.n + state.p; ++i) {
+    state[i] = 
+      { x : Math.random()
+      , y : Math.random()
+      , vx : 0
+      , vy : 0
+      , ax : 0
+      , ay : 0 }
+  }
 }
 
 function drawState() {
   twod.fillStyle = '#eef'
   twod.fillRect(0, 0, canvas.width, canvas.height)
-  twod.drawImage(goalPicture, 0.9 * canvas.width, 0, 0.1 * canvas.width, 0.1 * canvas.height)
+  twod.save()
+  twod.rotate(Math.PI)
+  twod.drawImage(goalPicture, -0.9, -0.9, -0.1, -0.1)
+  twod.restore()
   twod.beginPath()
-  twod.arc(sx(state.x[0]), sy(state.y[0]), O_r, 0, 2 * Math.PI)
+  twod.arc(state[0].x, state[0].y, O_r, 0, 2 * Math.PI)
   twod.fillStyle = '#00f'
   twod.fill()
   twod.strokeStyle = '#000'
   twod.stroke()
   for (var i = 1; i <= state.n; ++i) {
-    ps = [{x:V_a, y:0}, {x:-V_b, y:V_len/4}, {x:-V_b, y:-V_len/4}]
-    for (var j = 0; j < ps.length; ++j) {
-      ps[j] = moveToV(ps[j], state.vx[i], state.vy[i], state.x[i], state.y[i])
-    }
-    twod.beginPath()
-    twod.moveTo(ps[0].x, ps[0].y)
-    for (var j = 1; j < ps.length; ++j) {
-      twod.lineTo(ps[j].x, ps[j].y)
-    }
-    twod.lineTo(ps[0].x, ps[0].y)
-    twod.fillStyle = '#f00'
-    twod.fill()
-    twod.strokeStyle = '#000'
-    twod.stroke()
+    drawClosedPath(V_shape, '#f00', i)
   }
+  for (var i = state.n + 1; i <= state.n + state.p; ++i) {
+    drawClosedPath(P_shape, '#a20', i)
+  }
+}
+
+function drawClosedPath(ps, color, i) {
+  s = state[i]
+  nps = []
+  for (var j = 0; j < ps.length; ++j) {
+    nps[j] = moveToV(ps[j], s.vx, s.vy, s.x, s.y)
+  }
+  twod.beginPath()
+  twod.moveTo(nps[0].x, nps[0].y)
+  for (var j = 1; j < ps.length; ++j) {
+    twod.lineTo(nps[j].x, nps[j].y)
+  }
+  twod.closePath()
+  twod.fillStyle = color
+  twod.fill()
+  twod.strokeStyle = '#000'
+  twod.stroke()
 }
 
 function moveToV(p, vx, vy, x, y) {
@@ -111,15 +160,10 @@ function moveToV(p, vx, vy, x, y) {
     alpha = Math.atan2(vy, vx)
   }
   p = rotate(p, alpha)
-  p.y = -p.y // accounts for sy's axis reversal
-  p = translate(p, sx(x), sy(y))
+  p = translate(p, x, y)
   return p
 }
 
-// TODO: I should probably use canvas.setTransform
-// see https://developer.apple.com/library/safari/documentation/AudioVideo/Conceptual/HTML-canvas-guide/MatrixTransforms/MatrixTransforms.html#//apple_ref/doc/uid/TP40010542-CH10-SW1
-function sx(x) { return canvas.width * x; }
-function sy(y) { return canvas.height * (1-y); }
 function translate(p, dx, dy) { return { x : p.x + dx, y : p.y + dy } }
 function rotate(p, a) {
   return { x : p.x * Math.cos(a) - p.y * Math.sin(a), y : p.x * Math.sin(a) + p.y * Math.cos(a) }
@@ -131,22 +175,116 @@ function refresh() {
   }
   dt = TIMESTEP / 1000
 
-  for (var i = 0; i <= state.n; ++i) {
-    // update positions and speeds
-    state.x[i] += state.vx[i] * dt
-    state.y[i] += state.vy[i] * dt
-    state.vx[i] += state.ax[i] * dt
-    state.vy[i] += state.ay[i] * dt
-
-    // counteract errors
-    state.x[i] = Math.max(state.x[i], 0.01)
-    state.y[i] = Math.max(state.y[i], 0.01)
-    state.x[i] = Math.min(state.x[i], 1 - 0.01)
-    state.y[i] = Math.min(state.y[i], 1 - 0.01)
-    state.vx[i] = Math.min(state.vx[i], 1)
-    state.vy[i] = Math.min(state.vy[i], 1)
+  // update positions, based on old acceleration and speed
+  for (var i = 0; i <= state.n + state.p; ++i) if (state[i]) {
+    s = state[i]
+    if (1 <= i && i <= state.n) {
+      // without friction
+      s.x += s.vx * dt + 0.5 * s.ax * dt * dt
+      s.y += s.vy * dt + 0.5 * s.ay * dt * dt
+    } else {
+      // with friction
+      g = GAMMA
+      s.x += s.ax / g * dt + (s.vx - s.ax / g) / g * (1 - Math.exp(-g * dt))
+      s.y += s.ay / g * dt + (s.vy - s.ay / g) / g * (1 - Math.exp(-g * dt))
+    }
   }
-  // engine and friction for O
+
+  // update speed, based on old acceleration
+  for (var i = 0; i <= state.n + state.p; ++i) if (state[i]) {
+    s = state[i]
+    if (1 <= i && i <= state.n) {
+      // without friction
+      s.vx += s.ax * dt
+      s.vy += s.ay * dt
+    } else {
+      // with friction
+      g = GAMMA
+      s.vx = s.ax / g + (s.vx - s.ax / g) * Math.exp(-g * dt)
+      s.vy = s.ay / g + (s.vy - s.ay / g) * Math.exp(-g * dt)
+    }
+  }
+
+  // collisions (1): won?
+  if (state[0].x > 0.9 && state[0].y > 0.9) {
+    if (enemiesIncrement < 0) {
+      enemiesIncrement = 1
+    } else {
+      enemiesIncrement *= 2
+    }
+    restart('#0f0')
+    return
+  }
+
+  // collisions (2): lost?
+  s0 = state[0]
+  for (var i = 1; i <= state.n; ++i) if (state[i]) {
+    si = state[i]
+    tip = moveToV(V_shape[0], si.vx, si.vy, si.x, si.y)
+    d = Math.sqrt(Math.pow(s0.x - tip.x, 2) + Math.pow(s0.y - tip.y, 2))
+    if (d < O_r) {
+      if (enemiesIncrement > 0) {
+        enemiesIncrement = -1
+      } else {
+        enemiesIncrement *= 2
+      }
+      restart('#f00')
+      return
+    }
+  }
+
+  // collisions (3): P kill V
+  for (var i = 1; i <= state.n; ++i) if (state[i]) {
+    si = state[i]
+    tip = moveToV(V_shape[0], si.vx, si.vy, si.x, si.y)
+    for (var j = state.n + 1; j <= state.n + state.p; ++j) {
+      sj = state[j]
+      d = Math.sqrt(Math.pow(sj.x-tip.x,2)+Math.pow(sj.y-tip.y,2))
+      if (d < P_sz) {
+        state[i] = 0
+        break
+      }
+    }
+  }
+
+  // collisions (4): walls reflect
+  s0 = state[0]
+  if ((s0.x < O_r && s0.vx < 0) || (s0.x > 1 - O_r && s0.vx > 0)) {
+    s0.vx = -s0.vx * 0.8
+  }
+  if ((s0.y < O_r && s0.vy < 0) || (s0.y > 1 - O_r && s0.vy > 0)) {
+    s0.vy = -s0.vy * 0.8
+  }
+
+  // collisions (5): O collides with P
+  s0 = state[0]
+  OP_mass = O_mass + P_mass
+  for (var i = state.n + 1; i <= state.n + state.p; ++i) {
+    si = state[i]
+    d = Math.sqrt(Math.pow(s0.x-si.x, 2) + Math.pow(s0.y-si.y, 2))
+    if (d > O_r + P_sz) {
+      continue
+    }
+    if ((si.vx > s0.vx) ^ (si.x > s0.x)) {
+      ivx = 2 * O_mass / OP_mass * s0.vx + (P_mass - O_mass) / OP_mass * si.vx
+      Ovx = 2 * P_mass / OP_mass * si.vx + (O_mass - P_mass) / OP_mass * s0.vx
+      si.vx = ivx
+      s0.vx = Ovx
+    }
+    if ((si.vy > s0.vy) ^ (si.y > s0.y)) {
+      ivy = 2 * O_mass / OP_mass * s0.vy + (P_mass - O_mass) / OP_mass * si.vy
+      Ovy = 2 * P_mass / OP_mass * si.vy + (O_mass - P_mass) / OP_mass * s0.vy
+      si.vy = ivy
+      s0.vy = Ovy
+    }
+  }
+
+  // update accelerations (1): reset all
+  for (var i = 0; i <= state.n + state.p; ++i) if (state[i]) {
+    state[i].ax = state[i].ay = 0
+  }
+
+  // update accelerations (2): add engine for O
   cx = ((commands >> 2) & 1) - ((commands >> 0) & 1)
   cy = ((commands >> 1) & 1) - ((commands >> 3) & 1)
   norm = Math.sqrt(cx * cx + cy * cy)
@@ -154,56 +292,39 @@ function refresh() {
     cx /= norm
     cy /= norm
   }
-  state.ax0 = cx - (cx - state.ax0) * Math.pow(IOTA, dt)
-  state.ay0 = cy - (cy - state.ay0) * Math.pow(IOTA, dt)
-  state.vx[0] += state.ax0 * dt - state.vx[0] * GAMMA
-  state.vy[0] += state.ay0 * dt - state.vy[0] * GAMMA
+  state[0].ax += cx * ENGINE_A
+  state[0].ay += cy * ENGINE_A
 
-  // other accelerations
-  for (var i = 0; i <= state.n; ++i) {
-    state.ax[i] = state.ay[i] = 0
+  // update accelerations (3): walls repel O and V, like a mirror
+  for (var i = 0; i <= state.n + state.p; ++i) if (state[i]) {
+    s = state[i]
+    if (s.x < WD) s.ax += WA
+    if (s.y < WD) s.ay += WA
+    if (s.x > 1 - WD) s.ax -= WA
+    if (s.y > 1 - WD) s.ay -= WA
   }
-  // walls
-  for (var i = 0; i <= state.n; ++i) {
-    state.ax[i] += V_mass * V_mass / Math.pow(2 * state.x[i], BETA)
-    state.ax[i] -= V_mass * V_mass / Math.pow(2 * (1 - state.x[i]), BETA)
-    state.ay[i] += V_mass * V_mass / Math.pow(2 * state.y[i], BETA)
-    state.ay[i] -= V_mass * V_mass / Math.pow(2 * (1 - state.y[i]), BETA)
-  }
-  // avoid each-other
-  for (var i = 1; i <= state.n; ++i) {
-    for (var j = 1; j <= state.n; ++j) if (j != i) {
-      d = Math.sqrt(Math.pow(state.x[i] - state.x[j], 2) + Math.pow(state.y[i] - state.y[j], 2))
-      a = V_mass * V_mass / Math.pow(d, BETA)
-      state.ax[i] += a * (state.x[i] - state.x[j]) / d
-      state.ay[i] += a * (state.y[i] - state.y[j]) / d
+
+  // update accelerations (4): Vs and Ps repel each-other
+  for (var i = 1; i <= state.n + state.p; ++i) if (state[i]) {
+    for (var j = 1; j <= state.n + state.p; ++j) if (j != i && state[j]) {
+      si = state[i]
+      sj = state[j]
+      d = Math.sqrt(Math.pow(si.x - sj.x, 2) + Math.pow(si.y - sj.y, 2))
+      a = (j <= state.n? V_mass : P_mass) / Math.pow(d, BETA)
+      si.ax += a * (si.x - sj.x) / d
+      si.ay += a * (si.y - sj.y) / d
     }
   }
+
   drawState()
-
-  // detect (simple) collisions
-  if (state.x[0] > 0.9 && state.y[0] > 0.9) {
-    restart('#0f0', +1)
-    return
-  }
-  x0 = sx(state.x[0])
-  y0 = sy(state.y[0])
-  for (var i = 1; i <= state.n; ++i) {
-    tip = moveToV({ x : V_a, y : 0 }, state.vx[i], state.vy[i], state.x[i], state.y[i])
-    d = Math.sqrt(Math.pow(x0 - tip.x, 2) + Math.pow(y0 - tip.y, 2))
-    if (d < O_r) {
-      restart('#f00', -1)
-      return
-    }
-  }
 }
 
-function restart(style, enemiesDelta) {
+function restart(style) {
   inplay = 0
   window.clearInterval(timer)
   twod.fillStyle = style
   twod.fillRect(0, 0, canvas.width, canvas.height)
-  enemiesCount = Math.max(0, enemiesCount + enemiesDelta)
+  enemiesCount = Math.max(0, enemiesCount + enemiesIncrement)
   window.setTimeout(play, 2000)
 }
 
@@ -224,6 +345,7 @@ function assert(b, m) {
 </script>
 </head>
 <center>
+Take the bottle of water to Mircea.
 Designed by <a href="static/mgrig_design.jpg">Mircea Grigore</a>.
 Enemies count: <span id="level"></span>.<br/>
 <body onload="start()" onkeyup="keyup(event)" onkeydown="keydown(event)">
