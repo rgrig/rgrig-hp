@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <!-- TODO begin
+  . draw rocks as circles? ask M for permision
+    (correct simulation with squares is somewhat harder, but could be interesting)
+  * enemies should die if they are touched at all by rocks
+  * fix code for bottle(O)-rocks(P) collisions
   * use only [0,1] coordinates/distances before printing
   * improve simulation with viscosity
   * bottle should push rocks only by touch
@@ -12,17 +16,17 @@
 <script>
 var BETA = 2 // how forces decrease
 var EPS = 1e-9
-var GAMMA = 1 // friction/viscosity coefficent
+var GAMMA = 3 // friction/viscosity coefficent
 var MARGIN = 50
 var PAD = 25
 var TIMESTEP = 1000 / 30
 
-var ENGINE_A = 0.8 * GAMMA
+var ENGINE_A = 0.5 * GAMMA
 
 var WA = 0.1
 var WD = 0.05
 
-var O_mass = 1e-4
+var O_mass = 3e-4
 var O_r = 0.03
 var P_sz = O_r
 var P_mass = 1e-4
@@ -236,13 +240,15 @@ function refresh() {
   // collisions (3): P kill V
   for (var i = 1; i <= state.n; ++i) if (state[i]) {
     si = state[i]
-    tip = moveToV(V_shape[0], si.vx, si.vy, si.x, si.y)
-    for (var j = state.n + 1; j <= state.n + state.p; ++j) {
-      sj = state[j]
-      d = Math.sqrt(Math.pow(sj.x-tip.x,2)+Math.pow(sj.y-tip.y,2))
-      if (d < P_sz) {
-        state[i] = 0
-        break
+    for (var k = 0; k < V_shape.length; ++k) c3_done_i: {
+      tip = moveToV(V_shape[k], si.vx, si.vy, si.x, si.y)
+      for (var j = state.n + 1; j <= state.n + state.p; ++j) {
+        sj = state[j]
+        d = Math.sqrt(Math.pow(sj.x-tip.x,2)+Math.pow(sj.y-tip.y,2))
+        if (d < P_sz) {
+          state[i] = 0
+          break c3_done_i
+        }
       }
     }
   }
@@ -265,6 +271,26 @@ function refresh() {
     if (d > O_r + P_sz) {
       continue
     }
+    v0 = { x : s0.vx, y : s0.vy }
+    vi = { x : si.vx, y : si.vy }
+    alpha = Math.atan2(si.y - s0.y, si.x - s0.x)
+    v0 = rotate(v0, -alpha)
+    vi = rotate(vi, -alpha)
+    if (v0.x - vi.x < 0) {
+      // not going towards each-other
+      continue
+    }
+    v0x = 2 * P_mass / OP_mass * vi.x + (O_mass - P_mass) / OP_mass * v0.x
+    vix = 2 * O_mass / OP_mass * v0.x + (P_mass - O_mass) / OP_mass * vi.x
+    v0.x = v0x
+    vi.x = vix
+    v0 = rotate(v0, alpha)
+    vi = rotate(vi, alpha)
+    s0.vx = v0.x
+    s0.vy = v0.y
+    si.vx = vi.x
+    si.vy = vi.y
+/*
     if ((si.vx > s0.vx) ^ (si.x > s0.x)) {
       ivx = 2 * O_mass / OP_mass * s0.vx + (P_mass - O_mass) / OP_mass * si.vx
       Ovx = 2 * P_mass / OP_mass * si.vx + (O_mass - P_mass) / OP_mass * s0.vx
@@ -277,6 +303,7 @@ function refresh() {
       si.vy = ivy
       s0.vy = Ovy
     }
+    */
   }
 
   // update accelerations (1): reset all
