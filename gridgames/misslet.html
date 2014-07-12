@@ -14,7 +14,7 @@ var twod
 
 function start() { if (--countdown == 0) main() }
 
-$.get('common_words.txt', function(data) {
+$.get('static/common_words.txt', function(data) {
   ws = data.split(/(?: |\n)+/)
   words = []
   for (i = 0; i < ws.length; ++i) if (ws[i] != '') words.push(ws[i])
