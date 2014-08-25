@@ -50,17 +50,19 @@
   \hbox to \textwidth{%
     \hbox to 2.5cm{\hfil\parfillskip=0pt #1}%
     \hss%
-    \vtop{\hsize=14.2cm\noindent#2}%
+    \vtop{\hsize=14.2cm\raggedright\noindent#2}%
   }%
-  \smallskip%
+  \medskip%
 }
+\newcommand{\gb}{\penalty-1} % good break
 
 \overfullrule=5pt
 
 \begin{document}
 \centerline{\Huge\bfseries Radu Grigore}
+\vskip .5cm plus.5cm minus.3cm
 \centerline{\today}
-\vskip 1.5cm plus.5cm minus.5cm
+\vskip 1cm plus.5cm minus.5cm
 
 \entry{\emph{Email}:}{\href{mailto:radugrigore@gmail.com}
   {\nolinkurl{radugrigore@gmail.com}}}
@@ -69,19 +71,28 @@
 
 \section*{Education}
 
+\entry{2013--now}
+  {Postdoctoral Research Assistant, \gb
+  Computer Science, \gb
+  University of Oxford.}
 \entry{2010--2013}
-  {Postdoctoral Research Assistant in the theory group of the EECS
-  department at Queen Mary, University of London.}
+  {Postdoctoral Research Assistant, \gb
+  Theory Group, \gb
+  EECS, \gb
+  Queen Mary, University of London.}
 \entry{2005--2010}
-  {PhD at UCD (University College Dublin) on \emph{The
-  Design and Algorithms of a Verification Condition Generator},
-  funded by the European research project \textsc{Mobius}.}
+  {PhD, \gb
+  CS, \gb
+  \emph{The Design and Algorithms of a Verification Condition Generator}, \gb
+  University College Dublin.}
 \entry{1998--2003}
-  {BSc at PUB (Politehnica University of Bucharest).
-  My average grade is 9.75 out of~10. My diploma
-  dissertation is on \emph{Traffic Models for Data Networks}.}
+  {BSc, \gb
+  EE, \gb
+  Politehnica University of Bucharest. \gb
+  My average grade is 9.75 out of~10. \gb
+  My diploma dissertation is on \emph{Traffic Models for Data Networks}.}
 \entry{2001}
-  {Internship in the Darmstadt Institute for Microelectronics,
+  {Internship in the Darmstadt Institute for Microelectronics, \gb
   funded by a \google{DAAD} scholarship.}
 \entry{1994--1998}
   {``Gheorghe \,Sincai'' highschool, Bucure\,sti}
@@ -107,11 +118,12 @@
   generated in a variety of procedural languages. I worked
   in a team of two within \nobug.}
 
+\pagebreak
 \section*{Teaching}
 
 \entry{2011}
   {\emph{Specification and Verification}
-    (QMUL): I help problem solving sessions.}
+    (QMUL): I led problem solving sessions.}
 \entry{2011}
   {\emph{Probabilities and Matrices}
     (QMUL): I demonstrated during practicals.}
@@ -138,61 +150,65 @@
 \entry{2003}
   {\emph{Data Networks} (PUB): I demonstrated during practicals.}
 
-\pagebreak
-
-\section*{Research Publications}
+\section*{Selected Publications}
+\entry{2014}
+  {Xin Zhang,  Ravi Mangal,  Radu Grigore,  Mayur Naik,  Hongseok Yang.
+  \newblock \emph{On Abstraction Refinement for Program Analyses in Datalog}.
+  \newblock PLDI ({\bf distinguished paper award})}
+\entry{2013}
+  {Mikol\'a\v{s} Janota,  Radu Grigore,  Joao Marques-Silva.
+  \newblock \emph{On QBF Proofs and Preprocessing}.
+  \newblock LPAR}
+\entry{2013}
+  {Radu Grigore,  Dino Distefano,  Rasmus Lerchedahl Petersen,  Nikos Tzevelekos.
+  \newblock \emph{Runtime Verification Based on Register Automata}.
+  \newblock TACAS}
+\entry{2013}
+  {Nikos Tzevelekos,  Radu Grigore.
+  \newblock \emph{History-Register Automata}.
+  \newblock FoSSaCS}
+\entry{2012}
+  {Thorsten Bormer, 
+  Marc Brockschmidt, 
+  Dino Distefano, 
+  Gidon Ernst, 
+  Jean-Christophe Filli\^atre, 
+  Radu Grigore, 
+  Marieke Huisman, 
+  Vladimir Klebanov, 
+  Claude March\'e, 
+  Rosemary Monahan, 
+  Wojciech Mostowski, 
+  Nadia Polikarpova, 
+  Christoph Scheben, 
+  Gerhard Schellhorn, 
+  Bogdan Tofan, 
+  Julian Tschannen, 
+  Mattias Ulbrich.
+  \newblock \emph{The COST IC0701 verification competition 2011}.
+  \newblock FoVeOOS}
 \entry{2011}
-  {Radu Grigore, Rasmus Lerchedahl Petersen, and Dino Distefano.
-  \newblock \emph{TOPL: A Language for Specifying Safety Temporal Properties
-    of Object-Oriented Programs}.
-  \newblock SPLASH Workshop on Foundations of Object-Oriented Languages (FOOL)}
-\entry{2011}
-  {Matko Botin\v{c}an, Dino Distefano, Mike Dodds, Radu Grigore,
-  Daiva Naud\v{z}i\=unien\.e, and Matthew J. Parkinson.
+  {Matko Botin\v{c}an,  Dino Distefano,  Mike Dodds,  Radu Grigore, 
+  Daiva Naud\v{z}i\=unien\.e,  Matthew J. Parkinson.
   \newblock \emph{coreStar: The Core of jStar}.
-  \newblock CADE Workshop on Intermediate Verification Languages (BOOGIE)}
-\entry{2011}
-  {Daiva Naud\v{z}i\=unien\.e, Matko Botin\v{c}an, Dino Distefano,
-  Mike Dodds, Radu Grigore, and Matthew J. Parkinson.
-  \newblock \emph{jStar-eclipse: an IDE for Automated Verification of Java
-    Programs}.
-  \newblock ACM SIGSOFT Symposium on the Foundations of Software Engineering
-    (FSE)}
+  \newblock BOOGIE}
 \entry{2010}
-  {Mikol\'a\v{s} Janota, Radu Grigore, and Joao Marques-Silva.
-  \newblock \emph{Counterexample Guided Abstraction Refinement Algorithm
-    for Propositional Circumscription}.
-  \newblock European Conference on Logics in Artificial Intelligence (JELIA)}
-\entry{2010}
-  {Mikol\'a\v{s} Janota, Goetz Boetterweck, Radu Grigore, 
-  and Joao Marques-Silva. 
+  {Mikol\'a\v{s} Janota,  Goetz Boetterweck,  Radu Grigore, 
+  Joao Marques-Silva. 
   \newblock \emph{How to Complete a Configuration Process?}
-  \newblock Conference on Current Trends in Theory and 
-  Practice of Computer Science (SOFSEM)}
+  \newblock SOFSEM}
 \entry{2009}
-  {Radu Grigore, Julien Charles, Fintan Fairmichael, and Joseph Kiniry.
-  \newblock \emph{Structured Postcondition of Unstructured Programs}.
-  \newblock ECOOP Workshop on Formal Techniques for Java-like 
-  Programs (FTfJP)}
-\entry{2009}
-  {Mikol\'a\v{s} Janota, Fintan Fairmichael, Viliam Holub,
-  Radu Grigore, Julien Charles, Dermot Cochran, and Joseph Kiniry.
-  \newblock \emph{CLOPS: A DSL for Command Line Options}.
-  \newblock IFIP Working Conference on Domain Specific Languages (DSL WC)}
+  {Radu Grigore,  Julien Charles,  Fintan Fairmichael,  Joseph Kiniry.
+  \newblock \emph{Strongest Postcondition of Unstructured Programs}.
+  \newblock FTfJP}
 \entry{2007}
-  {Radu Grigore and Micha{\l} Moskal.
-  \newblock \emph{Edit and Verify}.
-  \newblock Workshop on First-Order Theorem Proving (FTP)}
-\entry{2007}
-  {Mikol\'a\v{s} Janota, Radu Grigore, and Micha{\l} Moskal.
+  {Mikol\'a\v{s} Janota,  Radu Grigore,  Micha{\l} Moskal.
   \newblock \emph{Reachability Analysis for Annotated Code}.
-  \newblock ESEC\slash FSE Workshop on Specification
-  and Verification of Component-Based Systems (SAVCBS)}
+  \newblock SAVCBS}
 \entry{2005}
-  {Valentin \,Stefan Gheorghi\,t\u{a} and Radu Grigore.
+  {Valentin \,Stefan Gheorghi\,t\u{a}, Radu Grigore.
   \newblock \emph{Constructing Checkers from PSL Properties}.
-  \newblock Conference on Control Systems and
-  Computer Science (CSCS)}
+  \newblock CSCS}
 
 \section*{Open Source Contributions}
 
