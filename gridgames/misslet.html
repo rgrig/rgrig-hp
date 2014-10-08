@@ -7,6 +7,7 @@ var max_score = 100
 var badges = []
 
 var words
+var seen
 var countdown = 2
 var badgeCountdown = 10
 var canvas
@@ -17,7 +18,11 @@ function start() { if (--countdown == 0) main() }
 $.get('static/common_words.txt', function(data) {
   ws = data.split(/(?: |\n)+/)
   words = []
-  for (i = 0; i < ws.length; ++i) if (ws[i] != '') words.push(ws[i])
+  seen = []
+  for (i = 0; i < ws.length; ++i) if (ws[i] != '') {
+    words.push(ws[i])
+    seen.push(0)
+  }
   start()
 })
 
@@ -40,6 +45,8 @@ function play() {
 function stepstep(togo, i) {
   if (i == secret_word.length) {
     play()
+    if (Math.random() < Math.pow(0.5, seen[si] - 1))
+      $('#secret').text(secret_word)
     listening = true
     return;
   }
@@ -65,8 +72,9 @@ function step() {
   twod.closePath()
   twod.clip()
   drawBadges()
-  secret_word = words[randint(words.length)];
   si = Math.floor(Math.pow(Math.random(), 2) * words.length)
+  $('#secret').text('')
+  ++seen[si]
   secret_word = words[si];
   secret_sound = new Audio('static/oggs/'+secret_word+'.ogg')
   $('#word').text('');
@@ -151,11 +159,18 @@ $(document).ready(start)
   font-size:350px;
   text-align:center;
 }
+#secret {
+  font-family: georgia, serif;
+  font-size: 50px;
+  text-align: center;
+  color: #999;
+}
 </style>
 </head>
 <body>
 <canvas id='score'></canvas>
 <div id='word' title='click to hear again'></div>
+<div id='secret'></div>
 </body>
 <script>
 </script>
