@@ -1,0 +1,77 @@
+rect {
+  stroke : black;
+  stroke-width:3px;
+}
+line {
+  stroke:black;
+  stroke-width:3px;
+}
+#treesvg g text:hover, #treesvg g rect:hover{
+  cursor:pointer;
+}
+#navdiv{
+  width : 100%;
+}
+#navdiv button, #navdiv textarea {
+  width : 50%;
+  vertical-align : middle;
+  font-size : 20px
+}
+#g_labels text {
+  text-anchor:middle;
+}
+#treesvg {
+  border : solid;
+}
+
+#rttb-svg {
+  border : solid 3px
+}
+#rttb-buttons {
+  width : 100%;
+}
+#rttb-buttons button {
+  width : 50%;
+  vertical-align : middle;
+  font-size : 20px
+}
+#rttb-svg g text:hover, #rttb-svg g rect:hover{
+  cursor:pointer;
+}
+#rttb-labels text {
+  text-anchor : middle
+}
+#rttb-reps path {
+  stroke : blue;
+  stroke-width : 5px;
+  stroke-opacity : 0.3;
+  fill-opacity: 0;
+}
+
+.automaton-state {
+  fill-opacity : 0;
+  fill: white;
+  stroke : black;
+  stroke-width : 3px;
+}
+
+.automaton-final {
+  fill-opacity : 1;
+  fill : red;
+}
+
+.automaton-relevant {
+  stroke : black;
+  stroke-width : 10px;
+  fill-opacity : 0;
+}
+
+.automaton-irrelevant {
+  stroke : black;
+  stroke-width : 3px;
+  fill-opacity : 0;
+}
+
+.automaton-events {
+  text-anchor : middle;
+}

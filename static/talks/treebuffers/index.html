@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head> <!-- {{{ -->
+    <meta charset="utf-8">
+
+    <title>Tree Buffers</title>
+
+    <meta name="description" content="A data structure that generalizes circualar buffers">
+    <meta name="author" content="Hakim El Hattab">
+
+    <link rel="stylesheet" href="css/tb.css">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/white.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+    <script src="js/d3.v3.min.js"></script>
+  </head> <!-- }}} -->
+  <body> <!-- {{{ -->
+    <div class="reveal"> <!-- {{{ -->
+      <div class="slides"> <!-- {{{ -->
+<!--
+  plan:
+  0. motivation: trace nondeterministic automata
+  1. linear buffer
+  2. circular buffer
+  3. tree buffer - heights
+  4. tree buffer - depth & reps
+  5. theorem
+  6. more: link to paper
+-->
+        <section data-background="bkg-tree2.jpg"> <h1>Tree Buffers</h1> <!-- {{{ -->
+          <p>
+            <a href="http://rgrig.appspot.com/">Radu Grigore</a>
+            and
+            <a href="http://www.cs.ox.ac.uk/people/stefan.kiefer/">Stefan Kiefer</a>
+          </p>
+          <p>University of Oxford</p>
+          <p>CAV 2015, San Francisco</p>
+        </section> <!-- }}} -->
+        <section> <!-- motivation: automaton {{{ -->
+          <svg width="900" height="500">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" orient="auto" refX="1" refY="5">
+              <path d="M 0 0 L 10 5 L 0 10"/>
+            </marker>
+          </defs>
+          <path class="automaton-relevant" d="M 252,237 Q 337.5,196 396,224" marker-end="url(#arr)"/>
+          <path class="automaton-relevant" d="M 423,263 Q 337.5,304 279,276" marker-end="url(#arr)"/>
+          <path class="automaton-relevant" d="M 0,250 L 165,250" marker-end="url(#arr)"/>
+          <path class="automaton-relevant" d="M 480,250 L 615,250" marker-end="url(#arr)"/>
+          <path class="automaton-relevant" d="M 206.5,226.5 C 38,15.5 292,-42.5 238.5,191.5" marker-end="url(#arr)"/>
+          <path class="automaton-irrelevant" d="M 231.5,279 C 292,542.5 38,484.5 200,281.5" marker-end="url(#arr)"/>
+          <path class="automaton-irrelevant" d="M 468.5,273.5 C 637,484.5 383,542.5 441,289" marker-end="url(#arr)"/>
+          <path class="automaton-irrelevant" d="M 690,224 C 825,-10 825,510 695,284.5" marker-end="url(#arr)"/>
+          <text x="335.5" y="196">a</text>
+          <text x="335.5" y="324">b</text>
+          <text x="250" y="100">a</text>
+          <text x="250" y="400">b,c</text>
+          <text x="375" y="400">a,c</text>
+          <text x="540" y="230">b</text>
+          <text x="710" y="260">a,b,c</text>
+          <circle class="automaton-state" cx="225" cy="250" r="30"/>
+          <circle class="automaton-state" cx="450" cy="250" r="30"/>
+          <circle class="automaton-state automaton-final" cx="675" cy="250" r="30"/>
+          </svg>
+        </section> <!-- }}} -->
+        <section><h2>Linear Buffer</h2> <!-- {{{ -->
+          <svg width="900" height="500">
+            <defs>
+              <path id="lb-path1" d="M 507.5,-40 L 507.5,230"/>
+              <path id="lb-path2" d="M 507.5,230 L 457.5,230"/>
+              <path id="lb-path3" d="M 457.5,230 L 407.5,230"/>
+              <path id="lb-path4" d="M 407.5,230 L 357.5,230"/>
+              <path id="lb-path5" d="M 357.5,230 L 307.5,230"/>
+              <path id="lb-path6" d="M 307.5,230 L 307.5,500"/>
+            </defs>
+            <line x1="357.5" y1="270" x2="542.5" y2="270"/>
+            <rect width="35" height="35" fill="green">
+              <animateMotion dur="10s" repeatCount="indefinite">
+                <mpath xlink:href="#lb-path1"/>
+              </animateMotion>
+            </rect>
+            <rect width="35" height="35">
+              <animateMotion dur="10s" repeatCount="indefinite">
+                <mpath xlink:href="#lb-path2"/>
+              </animateMotion>
+              <animate
+                attributeName="fill" from="green" to="yellow" dur="10s"
+                repeatCount="indefinite" />
+            </rect>
+            <rect width="35" height="35" fill="yellow">
+              <animateMotion dur="10s" repeatCount="indefinite">
+                <mpath xlink:href="#lb-path3"/>
+              </animateMotion>
+            </rect>
+            <rect width="35" height="35" fill="yellow">
+              <animateMotion dur="10s" repeatCount="indefinite">
+                <mpath xlink:href="#lb-path4"/>
+              </animateMotion>
+            </rect>
+            <rect width="35" height="35">
+              <animateMotion dur="10s" repeatCount="indefinite">
+                <mpath xlink:href="#lb-path5"/>
+              </animateMotion>
+              <animate
+                attributeName="fill" from="yellow" to="red" dur="10s"
+                repeatCount="indefinite" />
+            </rect>
+            <rect width="35" height="35" fill="red">
+              <animateMotion dur="10s" repeatCount="indefinite">
+                <mpath xlink:href="#lb-path6"/>
+              </animateMotion>
+            </rect>
+          </svg>
+        </section> <!-- }}} -->
+        <section><h2>Circular Buffer</h2> <!-- {{{ -->
+        </section> <!-- }}} -->
+        <section> <!-- tree buffer {{{ -->
+          <section><h2>Tree Buffer</h2>
+            <div id="treebuffer-naive"></div>
+          </section>
+          <section style="text-align:left">
+          <p><b>Operations:</b></p>
+            <ul>
+              <li>click: ${\it add\_child}$</li>
+              <li>ctrl-click: ${\it deactivate}$</li>
+              <li>collect (button)
+            </ul>
+          <p><b>Legend:</b></p>
+            <ul>
+              <li><span style="background:green">active</span></li>
+              <li><span style="background:yellow">needed</span></li>
+              <li><span style="background:red">unneeded</span></li>
+              <li>numbers are distances to
+                <span style="background:green">active</span>
+                descendant</li>
+              <li>&lsquo;needed&rsquo; = &lsquo;labeled by $\lt h$&rsquo;
+                ($h=4$ in this example)
+            </ul>
+            </li>
+          </section>
+        </section> <!-- }}} -->
+        <section> <!-- real-time tree buffer {{{ -->
+          <section><h2>Real-Time Tree Buffer</h2>
+            <div id="treebuffer-realtime"></div>
+          </section>
+          <section style="text-align:left">
+          <p><b>Operations:</b></p>
+            <ul>
+              <li>click: ${\it add\_child}$</li>
+              <li>ctrl-click: ${\it deactivate}$</li>
+            </ul>
+          <p><b>Legend:</b></p>
+            <ul>
+              <li><span style="background:green">active</span></li>
+              <li><span style="background:yellow">needed</span></li>
+              <li><span style="background:red">unneeded</span></li>
+              <li><span style="background:purple">scheduled for deletion</span></li>
+              <li>numbers are distances from root</li>
+            </ul>
+            </li>
+          </section>
+        </section> <!-- }}} -->
+        <section><h2>Theorem</h2> <!-- {{{ -->
+          <p style="text-align:left" width="100%">
+          Consider a sequence of $\ell$ modifying operations.
+          Every operation takes $O(1)$ time in the real-time algorithm.
+          We have $s_{\sf rt}^{(k)} \in O(\max_{j\le k} s_{\sf gc}^{(j)})$ for all $k \le \ell$.
+          If the sequence is extensive then $s_{\sf rt}^{(k)} \in O(s_{\sf gc}^{(k)})$
+            for all $k \le \ell$.
+          </p>
+        </section> <!-- }}} -->
+        <section><h2>Example Applications</h2> <!-- {{{ -->
+          <ul>
+            <li>runtime verification: error traces</li>
+            <li>regex searching: capturing groups</li>
+            <li>tracing infinite automata with relevant/irrelevant transitions</li>
+          </ul>
+        </section><!-- }}} -->
+        <section data-background="bkg-tree2.jpg"> <!-- {{{ -->
+          <p>
+            <a href="http://arxiv.org/abs/1504.04757">http://arxiv.org/abs/1504.04757</a>
+          </p>
+        </section> <!-- }}} -->
+      </div> <!-- }}} slides -->
+    </div> <!-- }}} reveal -->
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <!-- reveal.js configuration {{{ -->
+    <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: false,
+        history: false,
+        center: true,
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+        math : { config : 'TeX-AMS_HTML-full' },
+        dependencies :
+          [ { src : 'plugin/math/math.js'
+            , async : true } ]
+      });
+
+    </script>
+    <!-- }}} -->
+  <script src="js/tb.js"></script>
+  </body> <!-- }}} -->
+</html>
+
+<!--
+vim:spell spelllang=en_us:
+-->
