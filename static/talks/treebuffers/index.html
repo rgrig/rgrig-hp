@@ -77,6 +77,8 @@
           <circle class="automaton-state" cx="450" cy="250" r="30"/>
           <circle class="automaton-state automaton-final" cx="675" cy="250" r="30"/>
           </svg>
+          <p>Grigore, Distefano, Petersen, Tzevelekos,
+          <i>Runtime Verification Based on Register Automata</i>, TACAS2013</p>
         </section> <!-- }}} -->
         <section><h2>Linear Buffer</h2> <!-- {{{ -->
           <svg width="900" height="500">
@@ -90,38 +92,38 @@
             </defs>
             <line x1="357.5" y1="270" x2="542.5" y2="270"/>
             <rect width="35" height="35" fill="green">
-              <animateMotion dur="10s" repeatCount="indefinite">
+              <animateMotion dur="5s" repeatCount="indefinite">
                 <mpath xlink:href="#lb-path1"/>
               </animateMotion>
             </rect>
             <rect width="35" height="35">
-              <animateMotion dur="10s" repeatCount="indefinite">
+              <animateMotion dur="5s" repeatCount="indefinite">
                 <mpath xlink:href="#lb-path2"/>
               </animateMotion>
               <animate
-                attributeName="fill" from="green" to="yellow" dur="10s"
+                attributeName="fill" from="green" to="yellow" dur="5s"
                 repeatCount="indefinite" />
             </rect>
             <rect width="35" height="35" fill="yellow">
-              <animateMotion dur="10s" repeatCount="indefinite">
+              <animateMotion dur="5s" repeatCount="indefinite">
                 <mpath xlink:href="#lb-path3"/>
               </animateMotion>
             </rect>
             <rect width="35" height="35" fill="yellow">
-              <animateMotion dur="10s" repeatCount="indefinite">
+              <animateMotion dur="5s" repeatCount="indefinite">
                 <mpath xlink:href="#lb-path4"/>
               </animateMotion>
             </rect>
             <rect width="35" height="35">
-              <animateMotion dur="10s" repeatCount="indefinite">
+              <animateMotion dur="5s" repeatCount="indefinite">
                 <mpath xlink:href="#lb-path5"/>
               </animateMotion>
               <animate
-                attributeName="fill" from="yellow" to="red" dur="10s"
+                attributeName="fill" from="yellow" to="red" dur="5s"
                 repeatCount="indefinite" />
             </rect>
             <rect width="35" height="35" fill="red">
-              <animateMotion dur="10s" repeatCount="indefinite">
+              <animateMotion dur="5s" repeatCount="indefinite">
                 <mpath xlink:href="#lb-path6"/>
               </animateMotion>
             </rect>
@@ -136,8 +138,8 @@
           <section style="text-align:left">
           <p><b>Operations:</b></p>
             <ul>
-              <li>click: ${\it add\_child}$</li>
-              <li>ctrl-click: ${\it deactivate}$</li>
+              <li>${\it add\_child}$ (click)</li>
+              <li>${\it deactivate}$ (ctrl-click)</li>
               <li>collect (button)
             </ul>
           <p><b>Legend:</b></p>
@@ -161,8 +163,8 @@
           <section style="text-align:left">
           <p><b>Operations:</b></p>
             <ul>
-              <li>click: ${\it add\_child}$</li>
-              <li>ctrl-click: ${\it deactivate}$</li>
+              <li>${\it add\_child}$ (click)</li>
+              <li>${\it deactivate}$ (ctrl-click)</li>
             </ul>
           <p><b>Legend:</b></p>
             <ul>
@@ -176,13 +178,42 @@
           </section>
         </section> <!-- }}} -->
         <section><h2>Theorem</h2> <!-- {{{ -->
-          <p style="text-align:left" width="100%">
-          Consider a sequence of $\ell$ modifying operations.
-          Every operation takes $O(1)$ time in the real-time algorithm.
-          We have $s_{\sf rt}^{(k)} \in O(\max_{j\le k} s_{\sf gc}^{(j)})$ for all $k \le \ell$.
-          If the sequence is extensive then $s_{\sf rt}^{(k)} \in O(s_{\sf gc}^{(k)})$
-            for all $k \le \ell$.
-          </p>
+          <div style="text-align:left" width="100%">
+          <p>Consider a sequence of $\ell$ updates for the real-time tree buffer.</p>
+          <ul>
+            <li>
+              Every update takes <strong>constant time</strong>.</li>
+            <li>
+              <svg width="130" height="40" viewBox="-5 -5 125 35">
+                <rect width="30" height="30" x="0" y="0" fill="red"/>
+                <rect width="30" height="30" x="30" y="0" fill="purple"/>
+                <rect width="30" height="30" x="60" y="0" fill="yellow"/>
+                <rect width="30" height="30" x="90" y="0" fill="green"/>
+              </svg>
+              ${}^{(k)}\in O(\max_{j\le k}$
+              <svg width="70" height="40" viewBox="-5 -5 65 35">
+                <rect width="30" height="30" x="0" y="0" fill="yellow"/>
+                <rect width="30" height="30" x="30" y="0" fill="green"/>
+              </svg>
+              ${}^{(j)})$
+              for all $k \le \ell$.
+            <li>
+              <svg width="130" height="40" viewBox="-5 -5 125 35">
+                <rect width="30" height="30" x="0" y="0" fill="red"/>
+                <rect width="30" height="30" x="30" y="0" fill="purple"/>
+                <rect width="30" height="30" x="60" y="0" fill="yellow"/>
+                <rect width="30" height="30" x="90" y="0" fill="green"/>
+              </svg>
+              ${}^{(k)}\in O($
+              <svg width="64" height="34" viewBox="-2 -2 62 32">
+                <rect width="30" height="30" x="0" y="0" fill="yellow"/>
+                <rect width="30" height="30" x="30" y="0" fill="green"/>
+              </svg>
+              ${}^{(k)})$
+              for all $k \le \ell$,
+              if the sequence is <em>extensive</em>.
+          </ul>
+          </div>
         </section> <!-- }}} -->
         <section><h2>Example Applications</h2> <!-- {{{ -->
           <ul>
