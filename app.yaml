@@ -11,7 +11,7 @@ handlers:
 
 - url: /static
   static_dir: static
-  expiration: '365D'
+  expiration: '1D'
 
 - url: /gridgames/static
   static_dir: gridgames/static
