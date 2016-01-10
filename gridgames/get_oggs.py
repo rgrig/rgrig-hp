@@ -27,6 +27,7 @@ def main():
   makedirs(argv[2], exist_ok=True)
   with open(argv[1],'r') as words:
     for w in words.read().split():
+      w = w.replace("'","_")
       try:
         sleep(10)
         with open(os.path.join(argv[2],'{}.ogg'.format(w)), 'wb') as wf:
