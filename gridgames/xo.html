@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head><title>xo</title></head>
+<script>
+var canvas
+var twod
+var pad = 10
+var w
+var h
+var size = 19
+var game
+var inplay
+var color = ['red', 'blue']
+var player
+function start() {
+  canvas = document.getElementById('board')
+  twod = canvas.getContext('2d')
+  inplay = 0
+  play()
+  canvas.addEventListener('click', handleClick)
+}
+function play() {
+  w = (canvas.width - pad) / size;
+  h = (canvas.height - pad) / size;
+  canvas.width = canvas.width
+  grid()
+  window.setTimeout(play2, 1500)
+}
+function play2() {
+  game = new Array(size * size)
+  for (var i = 0; i < size * size; ++i) game[i] = -1
+  player = 0
+  inplay = 1
+}
+function checkWin() {
+  dx = [1, 1, 0, 1]
+  dy = [1, 0, 1, -1]
+  for (i = 0; i < size; ++i) for (j = 0; j < size; ++j) if (game[i * size + j] != -1) {
+    for (k = 0; k < dx.length; ++k) {
+      check: for (l = 1; l < 5; ++l)  {
+        ii = i + l * dx[k]
+        jj = j + l * dy[k]
+        if (!(0 <= ii && ii < size)) break check
+        if (!(0 <= jj && jj < size)) break check
+        if (game[ii * size + jj] != game[i * size + j]) break check
+      }
+      if (l == 5) {
+        twod.fillStyle = color[game[i * size + j]]
+        twod.fillRect(0, 0, canvas.width, canvas.height)
+        inplay = 0
+        window.setTimeout(play, 2000)
+        return
+      }
+    }
+  }
+}
+function handleClick(e) {
+  if (!inplay) return
+  xy = getCanvasPos(e)
+  i = Math.floor((xy.x - pad / 2) / w)
+  j = Math.floor((xy.y - pad / 2) / h)
+  if (game[i * size + j] == -1) {
+    game[i * size + j] = player
+    fillSquare(i, j, color[player])
+    player = 1 - player
+    checkWin()
+  }
+}
+function grid() {
+  twod.beginPath()
+  for (var i = 0; i <= size; ++i) {
+    twod.moveTo(i * w + pad/2, pad/2)
+    twod.lineTo(i * w + pad/2, canvas.height-pad/2)
+  }
+  for (var i = 0; i <= size; ++i) {
+    twod.moveTo(pad / 2, i * h + pad / 2)
+    twod.lineTo(canvas.width - pad / 2, i * h + pad / 2)
+  }
+  twod.strokeStyle = '#000'
+  twod.stroke()
+}
+function fillSquare(i, j, color) {
+  twod.fillStyle = color
+  twod.fillRect(i * w + pad / 2 + 2, j * h + pad / 2 + 2, w - 4, h - 4)
+}
+function getCanvasPos(e) {
+  var x
+  var y
+  if (e.pageX != undefined && e.pageY != undefined) {
+    x = e.pageX
+    y = e.pageY
+  }
+  else {
+    x = e.clientX + document.body.scrollLeft +
+      document.documentElement.scrollLeft
+    y = e.clientY + document.body.scrollTop +
+      document.documentElement.scrollTop
+  }
+  x -= canvas.offsetLeft
+  y -= canvas.offsetTop
+  return {x : x, y : y}
+}
+</script>
+<body onload="start()">
+<center><canvas id="board" width="600" height="600"></canvas></center>
+</body>
+</html>

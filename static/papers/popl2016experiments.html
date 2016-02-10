@@ -1,0 +1,276 @@
+<html>
+<head><title>Repeat Experiments for Abstraction Refinement (POPL2016)</title></head>
+<body>
+<h3>Introduction</h3>
+
+<p>
+This webpage describes experiments reported in
+  <a href="http://arxiv.org/abs/1511.01874">
+  [Grigore, Yang,
+  <i>Abstraction Refinement by a Learnt Probabilistic Model</i>,
+  POPL&nbsp;2016]</a>.
+
+
+<h3>Overview</h3>
+
+<p>
+The main steps are
+
+<ol>
+<li>Download.
+<li>Generate a list of queries to solve.
+<li>Solve queries in the <i>optimistic</i> (old) setting.
+<li>Solve queries in the <i>pessimistic</i> (new) setting.
+<li>Learn probabilistic models.
+<li>Solve queries in the <i>probabilistic</i> (also new) setting.
+<li>Generate pretty pictures.
+</ol>
+
+<h3>Requirements</h3>
+
+<p>
+The following description assumes you have Ubuntu&nbsp;14.04.
+The required packages can be installed as follows
+
+<pre>
+sudo apt-get install openjdk-7-jdk python3-scipy python3-matplotlib
+</pre>
+
+<p>
+The default Java version should be 7.
+For example, you should see something like
+<pre>
+USER@HOST:~$ java -version
+java version "1.7.0_79"
+OpenJDK Runtime Environment (IcedTea 2.5.6) (7u79-2.5.6-0ubuntu1.14.04.1)
+OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
+USER@HOST:~$ javac -version
+javac 1.7.0_79
+</pre>
+
+<p>
+If Java 7 is not your default, then make it so:
+
+<pre>
+sudo update-alternatives --config javac
+sudo update-alternatives --config java
+</pre>
+
+<h3>Download</h3>
+
+<p>You need the analyzer, the programs to analyze, and helper scripts.
+Download
+  <a href="https://s3-eu-west-1.amazonaws.com/probability-analysis/data/chord-20151105.tar.bz2">
+  this archive (84MiB)</a>
+  and untar it.
+The programs to analyze are the same as in
+  <a href="https://scholar.google.com/scholar?q=On+Abstraction+Refinement+for+Program+Analyses+in+Datalog">
+  [Zhang&nbsp;et&nbsp;al.,
+  <i>On Abstraction Refinement for Program Analyses in Datalog </i>,
+  PLDI&nbsp;2014]</a>:
+
+<ul>
+<li><tt>toba-s</tt>: Java bytecode to C compiler
+<li><tt>javasrc-p</tt>: Java source code to HTML translator 
+<li><tt>weblech</tt>: website download/mirror tool
+<li><tt>hedc</tt>: web crawler from ETH
+<li><tt>antlr</tt>: parser/translator generator
+<li><tt>luindex</tt>: document indexing and search tool
+<li><tt>lusearch</tt>: text indexing and search tool 
+<li><tt>schroeder-m</tt>: sampled audio editing tool 
+</ul>
+
+<p>
+The archive contains
+
+<ul>
+<li><a href="https://bitbucket.org/pag-lab/jchord">jChord</a>,
+<li>parts of <a href="https://bitbucket.org/pag-lab/pjbench">pjbench</a> (listed above),
+<li>(bytecode of) some extensions of jChord generously shared with us
+    by <a href="http://www.cc.gatech.edu/~naik/">Mayur Naik</a>,
+<li>our refinement algorithm implementation
+  (in <tt>incubator/src/chord/analyses/experiment</tt>), and
+<li>our helper scripts.
+</ul>
+
+<h3>Environment</h3>
+
+<p>
+Before doing any work, set a few environment variables by saying
+<pre>
+source setenv
+</pre>
+
+
+<h3>Script</h3>
+
+<p>
+Generate a list (aka script) of queries to solve.
+
+<pre>
+acceleration_batch_run.py -make-script
+</pre>
+
+<p>
+This command takes a few minutes.
+It runs each of the two analyses (PolySite and Downcast) on each of the programs.
+It uses the cheapest abstraction.
+It creates a file <tt>script.txt</tt> in which it lists all assertions that might fail.
+(Those assertions that are seen not to fail even using the cheapest abstraction
+  are not listed.)
+
+<p>
+There are 1450 queries.
+With the default time limit of 1 hour per query,
+  solving all of them will not take more than 61 days.
+If you think 61 days might be too long,
+  then feel free to edit <tt>script.txt</tt> to select only a subset of queries.
+Consider also using the <tt>-maxq</tt> option, as in
+
+<pre>
+acceleration_batch_run.py -make-script -maxq 3
+</pre>
+
+
+<h3>Optimistic and Pessimistic Runs</h3>
+
+<p>Say
+
+<pre>
+acceleration_batch_run.py -mode MODE
+</pre>
+
+<p>
+where MODE is either <tt>optimistic</tt> (default) or <tt>pessimistic</tt>.
+Warning: This may take a few weeks.
+You may want to use the <tt>-timeout</tt> option to change the default.
+
+<p>
+Logs will be saved in a directory named <i>MODE-logs-TIMESTAMP</i>.
+
+
+<h3>Learning</h3>
+
+<p>
+Learning is done offline, based on provenances.
+The previous runs didn't save provenances.
+We will rerun the analysis in pessimistic mode, this time saving provenances.
+
+<p>
+First, we select a subset of queries, which we know are easy.
+
+<pre>
+script_from_logs.py -oo 900 -script script-for-provenance.txt pessimistic-logs-*
+</pre>
+
+<p>
+This command creates a file <tt>script-for-provenance.txt</tt>
+  which is a subset of <tt>script.txt</tt> that retains queries that were solved in 900 seconds.
+This step is optional.
+In principle, it is perfectly fine to try to generate provenances for all queries.
+However,
+  (a)&nbsp;you'll have to wait a <i>long</i> time, and
+  (b)&nbsp;you'll need a <i>big</i> disk (each provenance takes &gt;100MB).
+
+
+<p>
+Second, we rerun in pessimistic mode.
+
+<pre>
+acceleration_batch_run.py -mode pessimistic -save-provenances -script script-for-provenance.txt
+</pre>
+
+<p>
+Third, we collect samples.
+Be warned that you need a lot of memory for this step: we used 30GiB.
+Alternatively, you can download
+  <a href="https://s3-eu-west-1.amazonaws.com/probability-analysis/data/samples.json.bz2">
+  the samples from our training set</a>.
+<pre>
+PROVENANCES_DIR=$(ls -d p*-logs-* | sort | tail -1) # the directory produced by the previous command
+sample_provenances.py -save-samples samples.json $PROVENANCES_DIR/provenance_*
+</pre>
+
+<p>
+Fourth, to learn from samples, say
+<pre>
+compute_likelihood.py samples.json -skip PROGRAM -save-lowerbound lowerbound-PROGRAM.json
+optimize_likelihood.py lowerbound-PROGRAM.json -model model-PROGRAM
+</pre>
+
+<p>
+Here, PROGRAM is one of <tt>toba-s</tt>, <tt>javasrc-p</tt>, &hellip;
+The <tt>-skip</tt> option is used
+  so that <tt>model-PROGRAM</tt> is learned only from the runs on the other programs.
+
+<h3>Probabilistic Run</h3>
+
+<p>Say
+
+<pre>
+acceleration_batch_run.py -mode probabilistic
+</pre>
+
+<p>Logs are saved in in <i>probabilistic-logs-TIMESTAMP</i>.
+For this command,
+  the convention of putting models in files named <tt>model-PROGRAM</tt> is important!
+
+<h3>Logs</h3>
+
+<p>
+OK, OK: Maybe it's unreasonable to expect you to run this thing for a couple of months.
+Instead, you could just download
+  <a href="https://s3-eu-west-1.amazonaws.com/probability-analysis/data/popl2016-logs.tar.bz2">
+  our logs</a>
+  and untar them.
+Of course, it would be better if you produced your own logs.
+Who knows what went wrong on our servers?
+
+<h3>Pictures!</h3>
+
+<p>
+Before making pictures, you may wish to check that the three methods agree.
+<pre>
+check_logs.py -v LOGDIRS   # where LOGDIRS is a list with the directories you want analyzed
+</pre>
+
+<p>
+To make a cactus plot, say
+<pre>
+plot_a_cactus.py LOGDIRS
+</pre>
+
+<p>
+Now look at <tt>iter-cactus.png</tt> and <tt>time-cactus.png</tt>.
+
+<p>
+<img width="600" src="img/web-time-cactus.png"/>
+<img width="600" src="img/web-iter-cactus.png"/>
+
+<h3>Our Setup</h3>
+
+<p>
+The machines we used for the logs reported here
+  are <tt>r3.xlarge</tt> machines from the Amazon cloud.
+They have 30GiB of memory.
+Linux reports 4 cores with 5000bogomips each.
+There was no other load on the machine, apart from operating system stuff, of course.
+In particular, we did not run several analysers in parallel, although this would be possible.
+(Well, we did, but then we observed unacceptably high variance in the results,
+  so we started over.)
+
+
+<hr/>
+
+<p>
+Changelog:
+
+<p>
+20151106 added link to arXiv <br/>
+20151105 first version
+
+</body>
+</html>
+<!--
+vim:spell:
+-->

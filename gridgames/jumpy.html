@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!-- TODO begin
+TODO end -->
+<html>
+<head><title>jumpy ball</title>
+<script>
+PAD = 20
+LW = 5
+MOUNTAIN_COUNT = 11
+
+var canvas
+var twod
+
+var state
+
+function start() {
+  canvas = document.getElementById('canvas')
+  twod = canvas.getContext('2d')
+  canvas.width = window.innerWidth - 2 * PAD
+  canvas.height = window.innerHeight - 2 * PAD
+  twod.fillStyle = '#eef'
+  twod.fillRect(0, 0, canvas.width, canvas.height)
+  twod.beginPath()
+  twod.moveTo(0, canvas.height - LW)
+  twod.lineTo(canvas.width, canvas.height - LW)
+  twod.lineWidth = LW
+  twod.stroke()
+
+  delta_mountain = canvas.width / (MOUNTAIN_COUNT + 1)
+  a = delta_mountain / 2
+  o = canvas.height
+  for (var i = 1; i <= MOUNTAIN_COUNT; ++i) {
+    a *= 0.8
+    o *= 0.7
+    twod.beginPath()
+
+    twod.moveTo(i * delta_mountain - a, canvas.height - LW)
+    twod.lineTo(i * delta_mountain, canvas.height - o - LW)
+    twod.lineTo(i * delta_mountain + a, canvas.height - LW)
+    twod.stroke()
+  }
+}
+
+function assert(b, m) {
+  if (!b) console.log('INTERNAL: ' + m)
+}
+
+</script>
+</head>
+<body onload="start()">
+<canvas id="canvas"></canvas>
+</center>
+</body>
+</html>
