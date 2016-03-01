@@ -3,7 +3,7 @@
 <head><title>Missing Letters</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
-var max_score = 100
+var max_score = 25
 var badges = []
 
 var words
@@ -15,7 +15,7 @@ var twod
 
 function start() { if (--countdown == 0) main() }
 
-$.get('static/common_words.txt', function(data) {
+$.get('static/ladyj_w6ss_words.txt', function(data) {
   ws = data.split(/(?: |\n)+/)
   words = []
   seen = []
@@ -31,6 +31,7 @@ var score = 0
 
 var secret_word
 var secret_sound
+var nope_sound = new Audio('static/oggs/nope.ogg')
 
 var listening = false
 
@@ -45,8 +46,6 @@ function play() {
 function stepstep(togo, i) {
   if (i == secret_word.length) {
     play()
-    if (Math.random() < Math.pow(0.5, seen[si] - 1))
-      $('#secret').text(secret_word)
     listening = true
     return;
   }
@@ -62,7 +61,6 @@ function stepstep(togo, i) {
 function step() {
   if (score > max_score) {
     score = 0
-    ++to_hide
     shuffleBadges()
   }
   twod.clearRect(0, 0, canvas.width, canvas.height)
@@ -72,13 +70,12 @@ function step() {
   twod.closePath()
   twod.clip()
   drawBadges()
-  si = Math.floor(Math.pow(Math.random(), 2) * words.length)
-  $('#secret').text('')
+  si = randint(words.length)
   ++seen[si]
   secret_word = words[si];
-  secret_sound = new Audio('static/oggs/'+secret_word+'.ogg')
+  secret_sound = new Audio('static/oggs/'+secret_word.replace("'","_")+'.ogg')
   $('#word').text('');
-  setTimeout(function() {stepstep(secret_word.length - to_hide, 0)}, 300)
+  setTimeout(function() {stepstep(secret_word.length - Math.ceil(to_hide), 0)}, 300)
 }
 
 function onKeyPress(event) {
@@ -95,6 +92,12 @@ function onKeyPress(event) {
     } else {
       nw += w[i]
     }
+  }
+  if (ok == 0) {
+    nope_sound.play()
+    to_hide = Math.log(Math.exp(to_hide) - 1)
+  } else {
+    to_hide = Math.log(Math.exp(to_hide) + 0.5)
   }
   $('#word').text(nw)
   for (i = 0; i < w.length; ++i) if (nw[i] == '_') {
@@ -156,21 +159,14 @@ $(document).ready(start)
 <style>
 #word {
   font-family: georgia, serif;
-  font-size:350px;
+  font-size:200px;
   text-align:center;
-}
-#secret {
-  font-family: georgia, serif;
-  font-size: 50px;
-  text-align: center;
-  color: #999;
 }
 </style>
 </head>
 <body>
 <canvas id='score'></canvas>
 <div id='word' title='click to hear again'></div>
-<div id='secret'></div>
 </body>
 <script>
 </script>
