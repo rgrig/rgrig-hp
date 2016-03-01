@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><title>Missing Letters</title>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
 var max_score = 25
 var badges = []
@@ -15,7 +15,7 @@ var twod
 
 function start() { if (--countdown == 0) main() }
 
-$.get('static/ladyj_w6ss_words.txt', function(data) {
+$.get('static/{{words}}.words', function(data) {
   ws = data.split(/(?: |\n)+/)
   words = []
   seen = []
@@ -171,3 +171,10 @@ $(document).ready(start)
 <script>
 </script>
 </html>
+<!-- TODO
+* custom wordlist file
+. mark the end with something happy (celebration sound?)
+. ask about each work 2 times, shuffle
+. compute font size based on max word len (which should be not too long)
+. report missing ogg files
+-->
