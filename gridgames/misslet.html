@@ -3,11 +3,10 @@
 <head><title>Missing Letters</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
-var max_score = 2
+var repeat = 2
 var badges = []
 
 var words
-var seen
 var countdown = 2
 var badgeCountdown = 10
 var canvas
@@ -18,11 +17,12 @@ function start() { if (--countdown == 0) main() }
 $.get('static/{{words}}.words', function(data) {
   ws = data.split(/(?: |\n)+/)
   words = []
-  seen = []
   for (i = 0; i < ws.length; ++i) if (ws[i] != '') {
-    words.push(ws[i])
-    seen.push(0)
+    for (j = 0; j < repeat; ++j) {
+      words.push(ws[i])
+    }
   }
+  shuffle(words)
   start()
 })
 
@@ -63,20 +63,19 @@ function step() {
   twod.clearRect(0, 0, canvas.width, canvas.height)
   twod.save()
   twod.beginPath()
-  twod.rect(0, 0, canvas.width * score / max_score, canvas.height)
+  twod.rect(0, 0, canvas.width * score / words.length, canvas.height)
   twod.closePath()
   twod.clip()
   drawBadges()
-  if (score >= max_score) {
+  if (score >= words.length) {
     score = 0
     goodjob_sound.play()
-    shuffleBadges()
+    shuffle(badges)
+    shuffle(words)
     setTimeout(step, 1500 * goodjob_sound.duration)
     return
   }
-  si = randint(words.length)
-  ++seen[si]
-  secret_word = words[si];
+  secret_word = words[score];
   secret_sound = new Audio('static/oggs/'+secret_word.replace("'","_")+'.ogg')
   $('#word').text('');
   setTimeout(function() {stepstep(secret_word.length - Math.ceil(to_hide), 0)}, 300)
@@ -136,17 +135,18 @@ function loadBadges() {
     badges[i].src = 'static/imgs/x'+i+'.png'
     badges[i].addEventListener('load', function() { --badgeCountdown; });
   }
-  shuffleBadges()
+  shuffle(badges)
 }
 
-function shuffleBadges() {
-  for (i = badges.length; i > 0; --i) {
+function shuffle(xs) {
+  for (i = xs.length; i > 0; --i) {
     j = randint(i)
-    tmp = badges[i-1]
-    badges[i-1] = badges[j]
-    badges[j] = tmp
+    tmp = xs[i-1]
+    xs[i-1] = xs[j]
+    xs[j] = tmp
   }
 }
+
 
 function main() {
   canvas = document.getElementById('score')
@@ -178,7 +178,7 @@ $(document).ready(start)
 <!-- TODO
 * custom wordlist file
 * mark the end with something happy (celebration sound?)
-. ask about each work 2 times, shuffle
+* ask about each work 2 times, shuffle
 . compute font size based on max word len (which should be not too long)
 . report missing ogg files
 -->
