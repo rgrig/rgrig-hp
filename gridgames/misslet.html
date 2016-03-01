@@ -3,7 +3,7 @@
 <head><title>Missing Letters</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
-var max_score = 25
+var max_score = 2
 var badges = []
 
 var words
@@ -32,6 +32,7 @@ var score = 0
 var secret_word
 var secret_sound
 var nope_sound = new Audio('static/oggs/nope.ogg')
+var goodjob_sound = new Audio('static/oggs/good_job.ogg')
 
 var listening = false
 
@@ -59,10 +60,6 @@ function stepstep(togo, i) {
 }
 
 function step() {
-  if (score > max_score) {
-    score = 0
-    shuffleBadges()
-  }
   twod.clearRect(0, 0, canvas.width, canvas.height)
   twod.save()
   twod.beginPath()
@@ -70,6 +67,13 @@ function step() {
   twod.closePath()
   twod.clip()
   drawBadges()
+  if (score >= max_score) {
+    score = 0
+    goodjob_sound.play()
+    shuffleBadges()
+    setTimeout(step, 1500 * goodjob_sound.duration)
+    return
+  }
   si = randint(words.length)
   ++seen[si]
   secret_word = words[si];
@@ -173,7 +177,7 @@ $(document).ready(start)
 </html>
 <!-- TODO
 * custom wordlist file
-. mark the end with something happy (celebration sound?)
+* mark the end with something happy (celebration sound?)
 . ask about each work 2 times, shuffle
 . compute font size based on max word len (which should be not too long)
 . report missing ogg files
