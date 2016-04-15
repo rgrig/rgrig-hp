@@ -8,13 +8,15 @@ jinja_environment = jinja2.Environment(
 pages = [('papers', "Papers written by RGrig"),
         ('teaching', "RGrig's teaching activities"),
         ('puzzles', "Some puzzles that you can use at conferences"),
-        ('programs', "Some programs written by RGrig")]
+        ('programs', "Some programs written by RGrig"),
+        ('ukc-co527-2016spring', "Operating Systems and Architecture, lecture notes")]
 
 class MainPage(webapp2.RequestHandler):
   def get(self):
     template_values = dict()
     file_name = '/welcome.html'
-    if self.request.path != '/': file_name = self.request.path
+    if self.request.path != '/':
+      file_name = self.request.path
     file_name = os.path.join(os.path.dirname(__file__),'data'+file_name)
     content_file = open(file_name)
     template_values['content'] = content_file.read()
@@ -27,5 +29,6 @@ class MainPage(webapp2.RequestHandler):
     self.response.out.write(template.render(template_values))
 
 hooks = [('/', MainPage)]
-for p in pages: hooks.append(('/'+p[0]+'.html', MainPage))
+for p in pages:
+  hooks.append(('/'+p[0]+'.html', MainPage))
 app = webapp2.WSGIApplication(hooks, debug=True)
