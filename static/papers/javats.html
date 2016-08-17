@@ -1,0 +1,714 @@
+<script type='text/x-mathjax-config'>
+       MathJax.Hub.Config({
+         tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+       }});</script>
+<script src='http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full.js' type='text/javascript'></script>
+
+
+<html>
+<head><title>Java Generics are Turing Complete</title></head>
+<body>
+<p>
+This page contains material that supplements the article
+  [Grigore, <i>Java Generics are Turing Complete</i>,
+  <a href="http://arxiv.org/abs/1605.05274">arXiv</a>].
+
+<h3>Overview</h3>
+
+<p>
+Several programs are included, and they fit together as follows:
+
+<p>
+<img src="arch-1.png"/>
+
+<p>
+The data formats are as follows:
+
+<ul>
+<li>CFG: <b>c</b>ontext <b>f</b>ree <b>g</b>rammar
+<li>Simper: <b>simp</b>le <b>imper</b>ative programming language
+<li>TM: <b>T</b>uring <b>m</b>achine
+</ul>
+
+<p>
+The programs <tt>run_simper</tt> and <tt>run_tm</tt> are interpreters,
+  meant to be used for testing.
+The program <tt>javac</tt> is meant to be a compiler,
+  but we use it here as an interpreter.
+The program <tt>cyk_of_cfg</tt> is a parser generator.
+The programs <tt>tm_of_simper</tt> and <tt>java_of_tm</tt> are compilers.
+
+<p>
+The rest of the document assumes that you can run these programs.
+More precisely, it assumes you are in a Docker container, started as follows:
+
+<pre>
+  docker run -ti rgrig/javats
+</pre>
+
+<p>
+You might need to
+  <a href="http://www.google.com/search?q=install+docker&btnI">install Docker</a>,
+  if you don't already have it.
+Alternatively,
+  you could download the sources from the end of this document,
+  and compile the programs yourself.
+Each of the examples below assumes you use the Docker method,
+  and each of the examples starts by reminding you how to start the Docker container.
+But, please don't run a Docker container inside a docker container inside a &hellip;
+
+<p>
+Do not expect <tt>javac</tt> to be an <i>efficient</i> interpreter:
+  it was not meant to be an interpreter at all.
+Also, <tt>tm_of_simper</tt> generates rather inefficient Turing machines:
+  they are small enough for <tt>run_tm</tt>,
+  but way too big for <tt>javac</tt>.
+However,
+  if you are willing to write the Turing machine by hand,
+  then <tt>javac</tt> will likely handle it.
+If you would be interested in adding optimizations to <tt>tm_of_simper</tt>,
+  or even in re-implementing it completely in a better way,
+  please let me know.
+
+
+
+<h3>Example: Counting in Binary</h3>
+
+<p>
+The first example from the paper (Section 6.1) is a Turing machine that counts,
+  starting from a given $k$ bit number, up to $2^k-1$ and then halts.
+In ASCII notation, it looks as follows:
+
+<pre>
+  States { start flip rewind }
+  Alphabet { b0 b1 end }
+  Transitions {
+    start hash -&gt; flip end Right
+    flip b0 -&gt; rewind b1 Left
+    flip b1 -&gt; flip b0 Right
+    flip hash -&gt; Halt
+    rewind b0 -&gt; rewind b0 Left
+    rewind b1 -&gt; rewind b1 Left
+    rewind end -&gt; flip end Right
+  }
+</pre>
+
+<p>
+Let's run it:
+
+<pre>
+  docker run -ti rgrig/javats
+  mkdir work
+  cp tm/count.tm work
+  cd work
+  echo "b0 b0" | run_tm -v count.tm
+</pre>
+
+<p>
+If all is OK, you should see:
+
+<pre>
+     start:  &lt;hash&gt; b0 b0
+      flip: end &lt;b0&gt; b0
+    rewind:  &lt;end&gt; b1 b0
+      flip: end &lt;b1&gt; b0
+      flip: end b0 &lt;b0&gt;
+    rewind: end &lt;b0&gt; b1
+    rewind:  &lt;end&gt; b0 b1
+      flip: end &lt;b0&gt; b1
+    rewind:  &lt;end&gt; b1 b1
+      flip: end &lt;b1&gt; b1
+      flip: end b0 &lt;b1&gt;
+      flip: end b0 b0 &lt;hash&gt;
+  HALT
+</pre>
+
+<p>
+The least significant bit is towards the left.
+The head of the Turing machine is marked by angle brackets.
+If we look only at those lines where the head is on the <tt>end</tt> symbol we see
+
+<pre>
+    rewind:  &lt;end&gt; b1 b0
+    rewind:  &lt;end&gt; b0 b1
+    rewind:  &lt;end&gt; b1 b1
+</pre>
+
+<p>
+If we run
+
+<pre>
+  echo "b0 b0 b0 b0" | run_tm -v count.tm | grep '&lt;end&gt;'
+</pre>
+
+<p>
+we see
+
+<pre>
+    rewind:  &lt;end&gt; b1 b0 b0 b0
+    rewind:  &lt;end&gt; b0 b1 b0 b0
+    rewind:  &lt;end&gt; b1 b1 b0 b0
+    rewind:  &lt;end&gt; b0 b0 b1 b0
+    rewind:  &lt;end&gt; b1 b0 b1 b0
+    rewind:  &lt;end&gt; b0 b1 b1 b0
+    rewind:  &lt;end&gt; b1 b1 b1 b0
+    rewind:  &lt;end&gt; b0 b0 b0 b1
+    rewind:  &lt;end&gt; b1 b0 b0 b1
+    rewind:  &lt;end&gt; b0 b1 b0 b1
+    rewind:  &lt;end&gt; b1 b1 b0 b1
+    rewind:  &lt;end&gt; b0 b0 b1 b1
+    rewind:  &lt;end&gt; b1 b0 b1 b1
+    rewind:  &lt;end&gt; b0 b1 b1 b1
+    rewind:  &lt;end&gt; b1 b1 b1 b1
+</pre>
+
+<p>
+It should now be clear that this machine counts in binary.
+However, if we do not use the verbose flag (<tt>-v</tt>)
+  then we get at most one bit of output: <tt>HALT</tt> or <tt>STUCK</tt>.
+In other words, we can solve decision problems;
+  for other problems we need to compute their output bit by bit.
+But that's in general:
+  for our Turing machine that counts the output will always be <tt>HALT</tt>,
+  printed after more or less time.
+
+<p>
+Now let's produce Java code:
+
+<pre>
+  java_of_tm count.tm
+</pre>
+
+<p>
+You should see a file <tt>count.java</tt>,
+  and you should be able to compile it:
+
+<pre>
+  javac count.java
+</pre>
+
+<p>
+This did <i>not</i> run the Turing machine.
+To run the Turing machine, we need to first provide it with some input.
+
+<pre>
+  cp ../tm/Tape.java .
+  javac Tape.java
+</pre>
+
+<p>
+This <i>did</i> run the Turing machine, but on an empty tape.
+You can run it on a different tape by inserting method calls in-between
+  <tt>start</tt> and <tt>stop</tt> in <tt>Tape.java</tt>.
+For example, you could edit <tt>Tape.java</tt> so it looks as follows:
+
+<pre>
+  class Tape {
+    void f() {
+      E&lt;?super E&lt;?super Z&gt;&gt; l =
+        Builder.start.b0().b0().stop();
+    }
+  }
+</pre>
+
+<p>
+and then run the Turing machine on the input tape &lsquo;<tt>b0 b0</tt>&rsquo;.
+
+<pre>
+  javac Tape.java
+</pre>
+
+<p>
+There is no type error, which corresponds to the output <tt>HALT</tt>.
+(We will see in a later example how <tt>STUCK</tt> results in type errors.)
+You can try to increase the number of calls to <tt>b0()</tt>.
+On my computer, I get a <tt>StackOverflowError</tt> already at four bits.
+No matter: we can ask javac to work harder:
+
+<pre>
+  javac -J-Xss100m Tape.java
+</pre>
+
+<p>
+Now we can keep adding bits,
+  and watch how the compilation time goes up, exponentially.
+With 10 bits, it already takes about a minute.
+
+
+<h3>Example: Counting in Binary, Easy but Slow</h3>
+
+<p>
+Instead of implementing a Turing machine to count,
+  we can do it in a straightforward way in Simper.
+
+<pre>
+  docker run -ti rgrig/javats
+  mkdir work
+  cp simper/count.simper work
+  cd work
+  cat count.simper
+</pre>
+
+<p>
+You should see
+
+<pre>
+  var x
+  x := 0
+  while x != 1 { ++x }
+  halt
+</pre>
+
+<p>
+You can run this directly,
+  and you can compile it to Java.
+
+<pre>
+  echo "" | run_simper count.simper
+  tm_of_simper count.simper
+  echo "" | run_tm count.tm
+  java_of_tm count.tm
+</pre>
+
+<p>
+The resulting Java code is 4.6MiB in size, though.
+If you have lots of memory, then you might be able to compile it,
+  although it's also possible that <tt>javac</tt> will run out of memory.
+
+<pre>
+  javac -J-Xss100m count.java   # this might take a minute or two
+</pre>
+
+<p>
+This time we don't need anything on the input tape.
+  so use the following <tt>Main.java</tt>:
+
+<pre>
+  cp ../tm/Tape.java .
+  javac -J-Xss100m Tape.java
+</pre>
+
+<p>
+This should terminate without a type error.
+On my machine, <tt>javac</tt> runs out of memory.
+As I said,
+  <tt>tm_of_simper</tt> doesn't generate efficient Turing machines,
+  and <tt>javac</tt> wasn't meant to be an interpreter.
+If <tt>javac</tt> does terminate for you,
+  I'd appreciate an email letting me know how long it took
+    and how much memory it used.
+
+
+<h3>Example: Computing Ackermann</h3>
+
+<p>
+We can count, but we can also perform more interesting computations.
+For example, let's compute an Ackermann-like function.
+
+<pre>
+  docker run -ti rgrig/javats
+  mkdir work
+  cp simper/ack2.simper work
+  cd work
+  cat ack2.simper
+</pre>
+
+<p>
+You should see
+
+<pre>
+  var m, a0, a1, a2
+  m := 2
+  a0 := 0
+  a1 := 0
+  a2 := 1
+  eval: if a0 != 0 { --a0 ++m goto eval }
+  l1: if a1 != 0 { --a1 a0:=m ++a0 goto eval }
+  l2: if a2 != 0 { --a2 a1:=m ++a1 goto eval }
+  if m == 23 { halt }
+</pre>
+
+<p>
+The usual definition of Ackermann is recursive.
+However, Simper does not have procedures, nor recursion.
+Luckily, there is a fun way of computing some function that has the same growth rate,
+  a way which I learned from
+  [Schnoebelen, <i>Revisiting Ackermann-hardness for lossy counter machines
+    and Petri nets</i>, MFCS2010].
+So, if you want to understand why I'm saying that the code above computes Ackermann,
+  I'm afraid I'm just going to redirect you to Schnoebelen's paper.
+
+<p>
+Anyway, even for the simple code from above,
+  we wouldn't want to write the equivalent Turing machine by hand.
+But, with the tools provided here,
+  you can run the program from above,
+  compile it to a Turing machine, and run that too:
+
+<pre>
+  echo "" | run_simper ack2.simper
+  tm_of_simper ack2.simper
+  echo "" | run_tm ack2.tm
+</pre>
+
+<p>Now try to change the <tt>23</tt> in <tt>ack2.simper</tt> to some other number,
+  and then repeat the steps above.
+The Turing machine should get stuck.
+Now let's generate Java code:
+
+<pre>
+  java_of_tm ack2.tm
+</pre>
+
+<p>
+The generated <tt>ack2.java</tt> has 32MiB.
+Alas, <tt>javac</tt> doesn't seem able to compile this on a computer with 32GiB.
+
+
+<h3>Example: Is Set Theory Consistent?</h3>
+
+<p>
+A fun example is the Turing machine
+  <a href="http://www.scottaaronson.com/busybeaver.pdf">designed recently</a>
+  that searches for contradictions in set theory (ZF),
+  and halts when it finds one.
+(We hope it won't halt,
+  but we can't hope to prove it won't halt.)
+First, copy this Turing machine to your working directory.
+
+<pre>
+  docker run -ti rgrig/javats
+  mkdir work
+  cp tm/zf.tm work/
+  cd work/
+</pre>
+
+<p>
+You can run this machine using the Turing machine interpreter.
+
+<pre>
+  echo "" | run_tm zf.tm
+</pre>
+
+<p>
+You can also compile it to Java:
+
+<pre>
+  java_of_tm zf.tm
+  javac -J-Xss100m zf.java
+</pre>
+
+<p>
+If the previous step doesn't work on your computer,
+  it might be you need more memory.
+In that case, you can download the bytecode produced by <tt>javac</tt> from here:
+
+<ul>
+<li><a href="https://s3-eu-west-1.amazonaws.com/rgrig-data-for-papers/zf.jar">zf.jar</a> (3.4MiB)
+</ul>
+
+<p>
+Now, you can run the Turing machine using <tt>javac</tt>:
+
+<pre>
+  cp ../tm/Tape.java .
+  javac -J-Xss100m Tape.java
+</pre>
+
+<p>
+Or, if you use the downloaded Jar, say
+
+<pre>
+  javac -J-Xss100m -cp zf.jar Tape.java
+</pre>
+
+<p>
+In any case, don't expect <tt>javac</tt> to terminate normally.
+
+<h3>Example: Recognizing Palindromes</h3>
+
+<p>
+Suppose we want to recognize palindromes using <tt>javac</tt>.
+There are three ways we can do it:
+  by implementing a Turing machine,
+  by implementing a Simper program, or
+  by specifying a context free grammar.
+The last option is the easiest, and the most inefficient one.
+Let's start with it.
+
+<pre>
+  docker run -ti rgrig/javats
+  mkdir work
+  cp cfg/palindrome.cfg work/
+  cd work/
+  cat palindrome.cfg
+</pre
+
+<p>
+You should see
+
+<pre>
+  START: | a START a | b START b | a | b;
+</pre>
+
+<p>
+You can now compile this to a Turing machine and run it:
+
+<pre>
+  cyk_of_cfg palindrome.cfg
+  tm_of_simper palindrome.cyk.simper
+  echo "" | run_tm palindrome.cyk.tm   # takes a minute, prints HALT
+  echo "a b" | run_tm palindrome.cyk.tm  # takes a minute, prints STUCK
+  echo "a b a" | run_tm palindrome.cyk.tm  # ..., prints HALT
+</pre>
+
+<p>
+We can also generate Java code from the Turing machine
+
+<pre>
+  java_of_tm palindrome.cyk.tm
+</pre>
+
+<p>
+However, the result is too big (about 1.4GiB) to be compiled with <tt>javac</tt>.
+We can also start with a recognizer written directly in Simper.
+
+<pre>
+  rm *  # you must still be in directory work/
+  cp ../simper/palindrome.simper .
+  cat palindrome.simper
+</pre>
+
+<p>
+You should see
+
+<pre>
+  var i, j, x
+  if n == 0 { halt }
+  i := 0
+  j := n
+  --j
+  loop:
+  if input[i] == input[j] {
+    if j == 0 { halt }
+    else { ++i --j goto loop }
+  }
+  x := "a"  x := "b"  // hack to tell tm_of_simper to include these letters
+</pre>
+
+<p>
+As before, you can compile this to a Turing machine and test it:
+
+<pre>
+  tm_of_simper palindrome.simper
+  echo "" | run_tm palindrome.tm      # prints HALT
+  echo "a b" | run_tm palindrome.tm   # prints STUCK
+  echo "a b a" | run_tm palindrome.tm # prints HALT
+</pre>
+
+<p>
+We can compile the Turing machine to Java:
+
+<pre>
+  java_of_tm palindrome.tm
+</pre>
+
+<p>
+This time the source is considerably smaller than 1.4GiB: only 39MiB.
+Alas, still out of the reach of <tt>javac</tt> on my machine.
+
+<p>
+Finally, we can hand-code a Turing machine for recognizing palindromes.
+
+<pre>
+  rm *
+  cp ../tm/palindrome.tm .
+  echo "" | run_tm palindrome.tm      # prints HALT
+  echo "a b" | run_tm palindrome.tm   # prints STUCK
+  echo "a b a" | run_tm palindrome.tm # prints HALT
+</pre>
+
+<p>
+From this one you can get bytecode:
+
+<pre>
+  java_of_tm palindrome.tm
+  javac palindrome.java
+</pre>
+
+<p>
+And we can even run it.
+
+<pre>
+  cp ../tm/Tape.java .
+  javac Tape.java
+</pre>
+
+<p>
+Now edit <tt>Tape.java</tt> to add some letters in-between
+  <tt>start</tt> and <tt>stop</tt>.
+For example, you can make it look like this:
+
+<pre>
+  class Tape {
+    void f() {
+      E&lt;?super E&lt;?super Z&gt;&gt; l =
+        Builder.start.a().b().stop();
+    }
+  }
+</pre>
+
+<p>
+Since &lsquo;<tt>a b</tt>&rsquo; is not a palindrome,
+  the following command should report a type error:
+
+<pre>
+  javac Main.java
+</pre>
+
+<p>
+But if you change the tape to something that is a palindrome,
+  then it should compile.
+Possibly after giving the compiler more stack (<tt>-J-Xss100m</tt>),
+  and possibly after a lot of time;
+  but it will compile.
+
+
+<h3>Example: Recognizing an Inherently Ambiguous Language</h3>
+
+<p>
+The standard example of an inherently ambiguous context free language is
+  $\{\,a^m b^n c^n d^m\mid\,m,n\ge 0\} \cup \{\,a^m b^m c^n d^n\mid\,m,n\ge 0\}$.
+You can see the grammar and the hand-crafted Turing machine here:
+
+<pre>
+  docker run -ti rgrig/javats
+  cat cfg/abcd.cfg
+  cat tm/abcd.tm
+</pre>
+
+<p>
+And you can play with these files in the same way we did with the palindromes
+  in the previous section.
+
+<h3>Details: Syntax of CFG</h3>
+
+<p>
+The grammar for CFGs is as follows:
+
+<pre>
+  &lt;start&gt;   ::= { &lt;rule&gt; }
+  &lt;rule&gt;    ::= &lt;nonterminal&gt; ':' &lt;element&gt; { '|' &lt;element&gt; }
+  &lt;element&gt; ::= &lt;nonterminal&gt;
+  &lt;element&gt; ::= &lt;terminal&gt;
+</pre>
+
+<h3>Details: Syntax of Simper</h3>
+
+<p>
+The grammar for Simper is as follows:
+
+<pre>
+  &lt;program&gt;   ::= &lt;decls&gt; &lt;body&gt;
+  &lt;program&gt;   ::= &lt;body&gt;
+  &lt;decls&gt;     ::= 'var' &lt;id&gt; { ',' &lt;id&gt; }
+  &lt;body&gt;      ::= { &lt;command&gt; }
+  &lt;command&gt;   ::= &lt;label&gt; ':'
+  &lt;command&gt;   ::= 'goto' &lt;label&gt;
+  &lt;command&gt;   ::= &lt;lvalue&gt; ':=' &lt;value&gt;
+  &lt;command&gt;   ::= 'if' &lt;condition&gt; '{' &lt;body&gt; '}' &lt;else&gt;
+  &lt;command&gt;   ::= 'while' &lt;condition&gt; '{' &lt;body&gt; '}'
+  &lt;command&gt;   ::= 'switch' &lt;value&gt; '{' { &lt;branch&gt; } '}'
+  &lt;command&gt;   ::= '++' &lt;lvalue&gt;
+  &lt;command&gt;   ::= '--' &lt;lvalue&gt;
+  &lt;command&gt;   ::= 'halt'
+  &lt;else&gt;      ::=
+  &lt;else&gt;      ::= 'else' '{' &lt;body&gt; '}'
+  &lt;label&gt;     ::= &lt;id&gt;
+  &lt;value&gt;     ::= &lt;lvalue&gt;
+  &lt;value&gt;     ::= &lt;rvalue&gt;
+  &lt;lvalue&gt;    ::= &lt;id&gt;
+  &lt;lvalue&gt;    ::= &lt;id&gt; '[' &lt;value&gt; { ',' &lt;value&gt; } ']'
+  &lt;rvalue&gt;    ::= 'array' '[' &lt;value&gt; { ',' &lt;value&gt; } ']' '(' &lt;value&gt; ')'
+  &lt;rvalue&gt;    ::= &lt;num_literal&gt;
+  &lt;rvalue&gt;    ::= &lt;sym_literal&gt;
+  &lt;condition&gt; ::= &lt;value&gt; '==' &lt;value&gt;
+  &lt;condition&gt; ::= &lt;value&gt; '!=' &lt;value&gt;
+  &lt;branch&gt;    ::= &lt;value&gt; '{' &lt;body&gt; '}'
+</pre>
+
+<p>
+Simper has two special variables, which should not be declared explicitly:
+  <tt>input</tt> and <tt>n</tt>.
+A numeric literal is a nonnegative integer written in decimal notation.
+A symbol literal is an identifier (without spaces) put in double quotes.
+
+<h3>Details: Syntax of TM</h3>
+
+<pre>
+  &lt;machine&gt;     ::= &lt;Q&gt; &lt;alphabet&gt; &lt;delta&gt;
+  &lt;Q&gt;           ::= 'States' '{' { &lt;state&gt; } '}'
+  &lt;alphabet&gt;    ::= 'Alphabet' '{' { &lt;letter&gt; } '}'
+  &lt;delta&gt;       ::= 'Transitions' '{' { &lt;transition&gt; } '}'
+  &lt;transition&gt;  ::= &lt;state&gt; &lt;letter&gt; '-&gt;' &lt;state&lt; &lt;letter&gt; { ';' &lt;letter&gt; } &lt;move&gt;
+  &lt;transition&gt;  ::= &lt;state&gt; &lt;letter&gt; '-&gt;' 'Halt'
+  &lt;transition&gt;  ::= &lt;state&gt; '_' '-&gt;' &lt;move&gt;
+  &lt;transition&gt;  ::= &lt;state&gt; '_' '-&gt;' &lt;state&gt;
+  &lt;move&gt;        ::= 'Left'
+  &lt;move&gt;        ::= 'Stay'
+  &lt;move&gt;        ::= 'Right'
+  &lt;state&gt;       ::= &lt;id&gt;
+  &lt;letter&gt;      ::= &lt;id&gt;
+</pre>
+
+<h3>Source Code</h3>
+
+<p>
+The paper contains two theorems.
+Their proofs can be paraphrased as follows.
+
+<p>
+<b>Theorem 1.</b>
+It is undecidable whether $t$ is a subtype of $t'$ according to a given class table.
+
+<p><i>Proof.</i> See <tt>java_of_tm.ml</tt>.
+
+<p>
+<b>Theorem 6.</b>
+Given is a context free grammar $G$
+  that describes a language ${\cal L}\subseteq\Sigma^*$
+  over an alphabet of method names.
+We can construct Java class definitions, a type $T$,
+  and expressions ${\it Start}$, ${\it Stop}$ such that the code
+$$
+ T\; \ell \quad=\quad
+  {\it Start}.f^{(1)}().f^{(2)}()\ldots f^{(m)}().{\it Stop}
+$$
+type checks if and only if $f^{(1)}f^{(2)}\ldots f^{(m)} \in {\cal L}$.
+Moreover,
+  the class definitions have size polynomial in the size of $G$,
+  and the Java code can be type-checked in time polynomial in the size of $G$.
+
+<p>
+<i>Proof.</i> See <tt>cyk_of_cfg.ml</tt> and <tt>tm_of_simper.ml</tt>,
+  in addition to <tt>java_of_tm.ml</tt>.
+
+<p>
+So, here is the source code:
+
+<ul>
+<li><a href="https://s3-eu-west-1.amazonaws.com/rgrig-data-for-papers/javats-c34dd05.tar.bz2">javats-c34dd05.tar.bz2</a>
+</ul>
+
+<hr/>
+<p>Changelog:
+<p>
+20160817 first webpage
+
+</body>
+</html>
+<!--
+vim:spell:spelllang=en_us:
+-->
