@@ -31,4 +31,8 @@ class MainPage(webapp2.RequestHandler):
 hooks = [('/', MainPage)]
 for p in pages:
   hooks.append(('/'+p[0]+'.html', MainPage))
+
+# TODO: remove this temporary redirect
+hooks.append(webapp2.Route('/javats', webapp2.RedirectHandler, defaults={'_uri':'/static/papers/javats.html'}))
+
 app = webapp2.WSGIApplication(hooks, debug=True)
