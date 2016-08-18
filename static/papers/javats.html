@@ -17,7 +17,7 @@ This page contains material that supplements the article
 
 <h3>Just Show me the Basics</h3>
 
-<script type="text/javascript" src="https://asciinema.org/a/9qgs6sec7h8qkjjznip9td2pw.js" id="asciicast-9qgs6sec7h8qkjjznip9td2pw" async></script>
+<script type="text/javascript" src="https://asciinema.org/a/53bw22bwz2kjrzlevxnq4hcfl.js" id="asciicast-53bw22bwz2kjrzlevxnq4hcfl" async></script>
 
 <h3>Overview</h3>
 
@@ -287,7 +287,7 @@ If you have lots of memory, then you might be able to compile it,
 
 <p>
 This time we don't need anything on the input tape.
-  so use the following <tt>Main.java</tt>:
+  so use the following <tt>Tape.java</tt>:
 
 <pre>
   cp ../tm/Tape.java .
@@ -569,7 +569,7 @@ Since &lsquo;<tt>a b</tt>&rsquo; is not a palindrome,
   the following command should report a type error:
 
 <pre>
-  javac Main.java
+  javac Tape.java
 </pre>
 
 <p>
@@ -608,6 +608,13 @@ The grammar for CFGs is as follows:
   &lt;element&gt; ::= &lt;nonterminal&gt;
   &lt;element&gt; ::= &lt;terminal&gt;
 </pre>
+
+<p>
+Nonterminals start with an uppercase letter;
+  terminals start with a lowercase letter.
+There is no lexing: the name of the terminal is the <i>same</i> as
+  (what ends up being) the corresponding letter/symbol on the Turing machine tape.
+The start nonterminal has the special name &lsquo;<tt>START</tt>&rsquo;.
 
 <h3>Details: Syntax of Simper</h3>
 
@@ -667,6 +674,9 @@ A symbol literal is an identifier (without spaces) put in double quotes.
   &lt;letter&gt;      ::= &lt;id&gt;
 </pre>
 
+<p>
+The initial state has the special name &lsquo;<tt>start</tt>&rsquo;.
+
 <h3>Source Code</h3>
 
 <p>
@@ -703,13 +713,14 @@ Moreover,
 So, here is the source code:
 
 <ul>
-<li><a href="https://s3-eu-west-1.amazonaws.com/rgrig-data-for-papers/javats-c34dd05.tar.bz2">javats-c34dd05.tar.bz2</a>
+<li><a href="https://s3-eu-west-1.amazonaws.com/rgrig-data-for-papers/javats-ecf7199.tar.bz2">javats-ecf7199.tar.bz2</a>
 </ul>
 
 <hr/>
 <p>Changelog:
 <p>
-20160817 first webpage
+20160817 first webpage<br/>
+20160818 minor: typos, mentioned special identifiers for TM and CFG, bugfixes to some (not presented) example TMs
 
 </body>
 </html>
