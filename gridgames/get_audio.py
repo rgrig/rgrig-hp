@@ -9,16 +9,14 @@ import os.path
 
 def usage():
   stdout.write('''\
-usage: get_oggs.py word_list out_dir
+usage: get_audio.py word_list out_dir
 
-  For word in word_list, tries to download an ogg audio file from
+  For word in word_list, tries to download an audio file from
   http://www.oxforddictionaries.com/
 ''')
 
 def url_of_word(w):
-  fn = '{}__gb_1.ogg'.format(w)
-  return 'http://www.oxforddictionaries.com/media/english/uk_pron_ogg/{}/{}/{}/{}'.format(
-      fn[:1], fn[:3], fn[:5], fn)
+  return 'http://audio.oxforddictionaries.com/en/mp3/{}_gb_1.mp3'.format(w)
 
 def main():
   if len(argv) != 3:
@@ -30,7 +28,7 @@ def main():
       w = w.replace("'","_")
       try:
         sleep(10)
-        with open(os.path.join(argv[2],'{}.ogg'.format(w)), 'wb') as wf:
+        with open(os.path.join(argv[2],'{}.mp3'.format(w)), 'wb') as wf:
           wf.write(urlopen(url_of_word(w)).read())
       except Exception as e:
         stderr.write('failed to get {} because of {}\n'.format(w, e))
