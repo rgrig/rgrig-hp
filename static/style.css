@@ -14,8 +14,8 @@ A:Hover  {
 
 html, body  {
   height: 100%;  margin-top: 10px; padding: 0; /* force scrollbar */
-  font-family : helvetica, sans-serif;
-  font-size : 14px;
+  font-family : 'PT Sans', sans-serif;
+  font-size : 30px;
   line-height : 120%;
   text-align : left;
   color : Black;
@@ -27,19 +27,19 @@ em  {
 }
 
 H1  {
-  font-size : 18px;
+  font-size : 60px;
   color : #000066;
-  padding : 20px 0px 0px 0px;
+  padding : 60px 0px 30px 0px;
   margin : 0px;
 }
 
 H2  {
-  font-size : 16px;
+  font-size : 50px;
   color : #006600;
 }
 
 H3  {
-  font-size : 14px;
+  font-size : 40px;
   color : Black;
   padding : 14px 0px 0px 0px;
   margin : 0px;
@@ -65,7 +65,7 @@ ul {
 }
 
 .mono {
-  font-family : monospace;
+  font-family : 'PT Mono', monospace;
 }
 
 .nobullet  {
@@ -74,21 +74,22 @@ ul {
 }
 
 .small  {
-  font-size : 8px;
+  font-size : 16px;
   color : Gray;
-  font-family : monospace;
+  font-family : 'PT Mono', monospace;
 }
 
 .title  {
-  font-family : palatino, serif;
-  font-size : 24px;
-  font-weight : bold;
+  font-family : 'Patua One', cursive;
+  font-size : 80px;
   color : #660000;
   text-align : center;
+  padding-bottom: 40px;
+  padding-top: 20px;
 }
 
 #all {
-  width : 700px;
+  width : 1300px;
   margin-left : auto;
   margin-right : auto;
 }
@@ -96,7 +97,7 @@ ul {
 #content {
   float: left;
   z-index: 2;
-  width : 600px;
+  width : 900px;
 }
 
 #menu {
@@ -105,11 +106,12 @@ ul {
 }
 
 #navigation {
-  width : 70px;
-  margin-right : 10px;
+  width : 150px;
+  margin-right : 50px;
   padding: 10px 10px 10px 10px;
   float : left;
-  z-index:1;
+  z-index: 1;
   background : #aaaaff;
   font-weight : bold;
 }
+
