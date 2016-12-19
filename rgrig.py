@@ -5,11 +5,14 @@ import jinja2
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
-pages = [('papers', "Papers written by RGrig"),
-        ('teaching', "RGrig's teaching activities"),
-        ('puzzles', "Some puzzles that you can use at conferences"),
-        ('programs', "Some programs written by RGrig"),
-        ('ukc-co527-2016spring', "Operating Systems and Architecture, lecture notes")]
+pages = \
+  [ ( 'contact', "How to contact RGrig" )
+  , ( 'kids', "Games for kids")
+  , ( 'papers', "Papers written by RGrig")
+  , ( 'programs', "Some programs written by RGrig")
+  , ( 'puzzles', "Some puzzles that you can use at conferences")
+  , ( 'teaching', "RGrig's teaching activities")
+  , ( 'ukc-co527-2016spring', "Operating Systems and Architecture, lecture notes") ]
 
 class MainPage(webapp2.RequestHandler):
   def get(self):
