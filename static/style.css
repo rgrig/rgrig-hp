@@ -29,20 +29,23 @@ em  {
 
 H1  {
   font-size : 60px;
+  line-height : 120%;
   color : #FFF4D4 ;
   background : #030354;
-  padding : 20px;
+  padding : 10px;
   margin : 0px;
 }
 
 H2  {
   font-size : 50px;
+  line-height : 120%;
   color : #FFF4D4;
   background : #030354;
 }
 
 H3  {
   font-size : 40px;
+  line-height : 120%;
   color : #FFF4D4;
   background : #030354;
   padding : 14px 0px 0px 0px;
@@ -55,9 +58,8 @@ ul+h1 { margin-top : 40px; }
 p {
   margin : 0px 0px 20px 0px;
 }
-h1+p {
-  margin-top : 20px
-}
+h1+p { margin-top : 20px }
+ul+p { margin-top : 20px }
 
 strong  {
   font-weight : bold;
@@ -83,6 +85,7 @@ ul {
 
 .small  {
   font-size : 16px;
+  line-height : 120%;
   color : gray;
   font-family : 'PT Mono', monospace;
 }
@@ -90,6 +93,7 @@ ul {
 .title  {
   font-family : 'Patua One', cursive;
   font-size : 80px;
+  line-height : 120%;
   color : #FFF4D4;
   background : #030354;
   text-align : center;
